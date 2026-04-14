@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github-dark.min.css';
-import { Theme, builtInThemes, loadCustomThemes, saveCustomThemes } from '../utils/themes';
+import { Theme, builtInThemes, loadCustomThemes, saveCustomThemes, DEFAULT_PREVIEW_CONTENT } from '../utils/themes';
 
 marked.setOptions({
   breaks: true,
@@ -22,162 +22,17 @@ marked.use({
   }
 });
 
-const DEFAULT_CONTENT = `# 欢迎使用微信公众号 Markdown 编辑器
-
-这是一个专为微信公众号设计的 Markdown 编辑器，支持实时预览和一键复制功能。
-
-## 1. 基础语法
-
-### 标题
-
-# 一级标题
-## 二级标题
-### 三级标题
-#### 四级标题
-##### 五级标题
-###### 六级标题
-
-### 文本格式
-
-**加粗文本**
-
-*斜体文本*
-
-***加粗斜体文本***
-
-~~删除线文本~~
-
-==高亮文本==
-
-这是一个[链接](https://example.com)
-
-### 上标和下标
-
-水的化学式：H~2~O
-
-爱因斯坦质能方程：E=mc^2^
-
-### 脚注
-
-这里有一个脚注引用[^1]
-
-[^1]: 这是脚注内容
-
-## 2. 列表
-
-### 无序列表
-
-- 无序列表项 1
-- 无序列表项 2
-  - 嵌套列表项
-  - 嵌套列表项
-
-### 有序列表
-
-1. 第一项
-2. 第二项
-3. 第三项
-
-### 任务列表
-
-- [x] 已完成任务
-- [ ] 待完成任务
-- [ ] 另一个任务
-
-## 3. 代码
-
-### 行内代码
-
-这是 \`行内代码\` 示例。
-
-### 代码块
-
-\`\`\`javascript
-function greet(name) {
-  console.log(\`Hello, \${name}!\`);
-  return {
-    message: \`Welcome, \${name}\`,
-    timestamp: Date.now()
-  };
-}
-
-greet('World');
-\`\`\`
-
-\`\`\`python
-def factorial(n):
-    if n == 0:
-        return 1
-    return n * factorial(n-1)
-
-print(factorial(5))
-\`\`\`
-
-## 4. 表格
-
-| 功能 | 说明 | 状态 |
-|------|------|------|
-| 标题 | 支持多级标题 | ✅ |
-| 列表 | 有序/无序列表 | ✅ |
-| 代码 | 行内代码和代码块 | ✅ |
-| 表格 | Markdown 表格 | ✅ |
-| 引用 | 支持多级引用 | ✅ |
-| 图片 | 支持图片插入 | ✅ |
-
-## 5. 引用
-
-> 这是一段引用文字，用来强调重要内容。
-> 
-> 可以包含多行。
-> 
-> — 作者姓名
-
-### 嵌套引用
-
-> 第一层引用
-> 
-> > 第二层引用
-> > 
-> > > 第三层引用
-
-## 6. 分隔线
-
----
-
-***
-
-___
-
-## 7. 图片
-
-![示例图片](https://picsum.photos/800/400)
-
-## 8. 数学公式
-
-$$E = mc^2$$
-
-$$\sum_{i=1}^{n} i = \frac{n(n+1)}{2}$$
-
-## 主要功能
-
-- **实时预览**: 左侧编辑，右侧实时预览
-- **微信样式**: 完全适配微信公众号排版
-- **一键复制**: 复制后直接粘贴到微信编辑器
-- **主题切换**: 支持深色/浅色模式
-- **主题管理**: 多种内置样式，支持自定义
-
----
-
-开始编辑你的内容吧！
-`;
+// 使用包含图片的默认预览内容
+const DEFAULT_CONTENT = DEFAULT_PREVIEW_CONTENT;
 
 const STORAGE_KEY = 'wechat-markdown-content';
 const THEME_KEY = 'wechat-current-theme';
 
 export function useMarkdown() {
   const [content, setContent] = useState<string>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved || DEFAULT_CONTENT;
+    // 清除旧的存储内容，使用新的默认内容
+    localStorage.removeItem(STORAGE_KEY);
+    return DEFAULT_CONTENT;
   });
   const [html, setHtml] = useState<string>('');
   const [currentThemeId, setCurrentThemeId] = useState<string>(() => {
@@ -189,6 +44,11 @@ export function useMarkdown() {
 
   useEffect(() => {
     const parsedHtml = marked.parse(content) as string;
+    // 检查图片路径
+    if (content.includes('/showcase/')) {
+      console.log('Markdown content includes showcase images');
+      console.log('Parsed HTML:', parsedHtml);
+    }
     setHtml(parsedHtml);
   }, [content]);
 

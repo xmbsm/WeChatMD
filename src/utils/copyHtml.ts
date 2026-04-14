@@ -51,7 +51,15 @@ async function applyWeChatCompatibility(html: string): Promise<string> {
   // 1. 创建 section 作为根容器
   const section = doc.createElement('section');
   // 秀米 pattern: justify + break-word for better CJK mixed-content line breaking
-  section.setAttribute('style', 'text-align: justify; overflow-wrap: break-word; box-sizing: border-box;');
+  let containerStyle = 'text-align: justify; overflow-wrap: break-word; box-sizing: border-box;';
+  
+  // 添加基本字体样式
+  containerStyle += ' font-family: Optima-Regular, Optima, PingFangSC-light, PingFangTC-light, "PingFang SC", Microsoft YaHei, "微软雅黑", Segoe UI, Roboto, Helvetica, Arial, sans-serif;';
+  containerStyle += ' font-size: 16px;';
+  containerStyle += ' line-height: 1.6;';
+  containerStyle += ' color: rgb(0, 0, 0);';
+  
+  section.setAttribute('style', containerStyle);
   
   // 将 body 内容移动到 section
   const rootNodes = Array.from(doc.body.children);
@@ -62,10 +70,6 @@ async function applyWeChatCompatibility(html: string): Promise<string> {
       section.appendChild(node);
     }
   });
-  
-  // 清空 body 并添加 section
-  doc.body.innerHTML = '';
-  doc.body.appendChild(section);
   
   // 2a. 处理 hr-decoration flex sections for WeChat
   const svgPlaceholder = '<svg viewBox="0 0 1 1" style="float:left;line-height:0;width:0;vertical-align:top;"></svg>';
@@ -444,9 +448,13 @@ async function applyWeChatCompatibility(html: string): Promise<string> {
     img.setAttribute('src', proxyUrl);
   }));
   
+  // 清空 body 并添加处理后的 section
+  doc.body.innerHTML = '';
+  doc.body.appendChild(section);
+  
   // 19. 防止微信在 inline emphasis 和中文标点之间换行
   let outputHtml = doc.body.innerHTML;
-  outputHtml = outputHtml.replace(/(<\/(?:em|span|a|code)>)([：；，。！？、])/g, '$1\u2060$2');
+  outputHtml = outputHtml.replace(/(<\/(?:em|span|a|code)>)\s*([：；，。！？、])/g, '$1\u2060$2');
   
   return outputHtml;
 }
@@ -744,36 +752,21 @@ export async function copyRichText(html: string, themeCss?: string): Promise<boo
     let processedHtml = applyInlineStyles(html, themeCss);
     processedHtml = await applyWeChatCompatibility(processedHtml);
     
-    const fullHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <style>
-          /* 基本样式 */
-          body {
-            font-family: Optima-Regular, Optima, PingFangSC-light, PingFangTC-light, "PingFang SC", "Microsoft YaHei", "微软雅黑", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            font-size: 16px;
-            line-height: 1.6;
-            color: rgb(0, 0, 0);
-            padding: 0 8px;
-          }
-        </style>
-      </head>
-      <body>${processedHtml}</body>
-      </html>
-    `;
-
-    const blob = new Blob([fullHtml], { type: 'text/html' });
+    // 创建临时 div 来获取纯文本
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = processedHtml;
+    const plainText = tempDiv.textContent || tempDiv.innerText || '';
     
-    // 只提供 text/html 格式，确保微信编辑器优先使用富文本
-    const data = [
-      new ClipboardItem({
-        'text/html': blob
-      })
-    ];
-
-    await navigator.clipboard.write(data);
+    // 同时提供 text/html 和 text/plain 两种格式
+    const htmlBlob = new Blob([processedHtml], { type: 'text/html' });
+    const textBlob = new Blob([plainText], { type: 'text/plain' });
+    
+    const clipboardItem = new ClipboardItem({
+      'text/html': htmlBlob,
+      'text/plain': textBlob,
+    });
+    
+    await navigator.clipboard.write([clipboardItem]);
     return true;
   } catch (err) {
     console.error('Failed to copy rich text:', err);

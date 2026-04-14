@@ -423,7 +423,7 @@ export function ThemeManager({
               </button>
             </div>
             <div className="flex-1 overflow-auto p-6">
-              <div className="max-w-[680px] mx-auto bg-white shadow-sm rounded-lg min-h-full">
+              <div className="max-w-[680px] mx-auto bg-white shadow-sm rounded-lg">
                 <iframe
                   key={renderKey}
                   srcDoc={`
@@ -501,8 +501,15 @@ export function ThemeManager({
                     </body>
                     </html>
                   `}
-                  className="w-full min-h-[600px] border-0 rounded-lg"
+                  className="w-full border-0 rounded-lg"
+                  style={{ height: 'auto', minHeight: '600px' }}
                   title="主题预览"
+                  onLoad={(e) => {
+                    const iframe = e.target as HTMLIFrameElement;
+                    if (iframe.contentDocument?.body) {
+                      iframe.style.height = iframe.contentDocument.body.scrollHeight + 'px';
+                    }
+                  }}
                 />
               </div>
             </div>

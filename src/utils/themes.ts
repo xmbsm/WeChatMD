@@ -6,2150 +6,332 @@ export interface Theme {
   isCustom?: boolean;
 }
 
-export const DEFAULT_PREVIEW_CONTENT = `# 欢迎使用 WeMD
+export interface StyleDeclaration {
+  [key: string]: string;
+}
 
-这是一个现代化的 Markdown 编辑器，专为微信公众号排版设计。
+export interface GlobalStyles {
+  page: StyleDeclaration;
+  body: StyleDeclaration;
+  paragraph: StyleDeclaration;
+  headings: Record<'h1' | 'h2' | 'h3' | 'h4', StyleDeclaration>;
+}
 
-## 1. 基础语法
+export interface TemplateMeta {
+  version: number;
+  group: string;
+  icon: string | null;
+  source: string;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
 
-**这是加粗文本**
+export interface TemplateDefinition {
+  id: string;
+  name: string;
+  description: string;
+  meta: TemplateMeta;
+  globalStyles: GlobalStyles;
+  selectorStyles: Record<string, StyleDeclaration>;
+  advancedStyles: Record<string, StyleDeclaration>;
+}
 
-*这是斜体文本*
+export const DEFAULT_PREVIEW_CONTENT = `# 欢迎使用微信公众号 Markdown 编辑器
 
-***这是加粗斜体文本***
+> 这是一个专为微信公众号设计的 Markdown 编辑器，支持实时预览和一键复制功能。 
 
-~~这是删除线文本~~
+**WeChatMD** 是一个开源的 Markdown 排版工具它做的事情很简单：
 
-==这是高亮文本==
+- 让你把自定义的排版变成 **可复用的模板**
+- 一次打磨，*长期使用*
+- 导入、导出、分享，模板是你的资产
 
-这是一个[链接](https://example.com)
 
-## 2. 特殊格式
+---
 
-### 上标和下标
+## 这篇文章本身就是演示
 
-水的化学式：H~2~O
+你现在看到的所有样式——从**标题**的大小和颜色、到*正文*的字体和行高、引用块的背景和边框、代码的配色、下划线的样式——全部都由当前模板控制。
 
-爱因斯坦质能方程：E=mc^2^
+试试切换左上角的模板。整篇文章会 **立即换装**。
 
-### 脚注
+## 模板制作
 
-这里有一个脚注引用[^1]
+这是 **WeChatMD** 的核心。
 
-[^1]: 这是脚注内容
+点击顶部「模板制作」，进入可视化编辑器。每一个你能看到的元素，都可以单独调节样式。
 
-## 3. 列表
+### 标题
 
-### 无序列表
+你现在看到的这些标题样式，都是模板定义的。h1 到 h4 都允许各自独立控制字体、字号、颜色、边框、背景。
 
-- 列表项 1
-- 列表项 2
-  - 嵌套列表项
-  - 嵌套列表项
+附带 **N 种预设**——简约底线、左侧色条、渐变底色、标签胶囊、居中装饰、大写粗体、阴影浮动、极简留白。选一个接近的，再微调。
 
-### 有序列表
+前三级标题你已经见到了。
 
-1. 第一项
-2. 第二项
-3. 第三项
+#### 四级标题也有自己的存在感
 
-### 任务列表
+### 引用块
 
-- [x] 已完成任务
-- [ ] 待完成任务
-- [ ] 另一个任务
-
-## 4. 代码
-
-### 行内代码
-
-这是 \`行内代码\` 示例。
+> 你正在看的这段引用，就是当前模板的引用块样式。背景、边框、圆角、阴影、内边距——全部可调。
+> 
+> 附带 **多种预设**：经典左线、柔和卡片、强调色块、斜体引用、虚线边框、直角装饰。
 
 ### 代码块
 
 \`\`\`javascript
-function greet(name) {
-  console.log(\`Hello, \${name}!\`);
-  return {
-    message: \`Welcome, \${name}\`,
-    timestamp: Date.now()
-  };
+// 你看到的代码块样式，同样由模板决定
+// N 种预设：Mac 风格、暗色终端、左侧色条、阴影浮动
+function useTemplate(name) {
+  const template = loadTemplate(name);
+  return applyToMarkdown(template, content);
 }
-
-greet('World');
 \`\`\`
 
-## 5. 表格
+### 分割线
 
-| 功能 | 说明 | 状态 |
-|------|------|------|
-| 标题 | 支持多级标题 | ✅ |
-| 列表 | 有序/无序列表 | ✅ |
-| 代码 | 行内代码和代码块 | ✅ |
-| 表格 | Markdown 表格 | ✅ |
+分隔线的样式也是由模板控制的：
 
-## 6. 引用
-
-> 这是一段引用文字。
-> 
-> 可以包含多行。
-> 
-> — 作者姓名
-
-### 嵌套引用
-
-> 第一层引用
-> 
-> > 第二层引用
-> > 
-> > > 第三层引用
-
-## 7. 分隔线
+目前支持 **10 种装饰模式**。除了常规的细线、粗线、点线、渐隐，还可以使用符号装饰——在线条中央或两侧放置 ● ◆ ◇ ★ ○ ✦ 等符号，颜色、大小、间距都能自定义。
 
 ---
 
-***
+### 图片
 
-___
+图片支持三种插入方式：
 
-## 8. 图片
+1. **外部链接**——使用图片
+2. **剪贴板粘贴**——截图后直接粘贴，自动转为轻量引用
+3. **项目文件**——引用本地路径
 
-![示例图片](https://picsum.photos/800/400)
+> 复制到公众号时，微信会重新托管图片。**外部 https 链接**可直接使用；截图粘贴和本地图片会自动上传到临时图床生成链接（在线部署版自动完成，自部署需配置图片代理）。
 
-## 总结
+单张图片：
 
-这就是 WeMD 的预览内容，展示了各种 Markdown 语法的渲染效果！
+![默认封面图](/showcase/default-cover.svg)
+
+连续放置多张图片，它们会自动排列。
+
+![版式卡片 A](/showcase/default-grid-a.svg)
+
+![版式卡片 B](/showcase/default-grid-b.svg)
+
+---
+
+### 正文与行内样式
+
+**粗体**、*斜体*、下划线、行内代码、这些样式在不同模板下有完全不同的表现。颜色、字重、装饰方式，都由模板定义。
+
+### 列表
+
+- **无序**列表的样式由模板控制
+- 包括缩进、间距、标记符号
+- 适合罗列要点和功能说明
+
+1. **有序**列表同样如此
+2. 序号样式、间距、对齐方式
+3. 都可以在模板中调节
+
+### 表格
+
+| 元素 | 可独立调节 | 预设数量 |
+| --- | --- | --- |
+| 标题 h1–h4 | 字体、字号、颜色、边框、背景 | 多种 |
+| 引用块 | 背景、圆角、阴影、装饰模式 | 多种 |
+| 分割线 | 线型、颜色、符号、位置 | 多种 |
+| 代码块 | 背景、边框、高亮配色 | 多种 |
+| 图片 | 圆角、阴影、网格 / 轮播 | 多种 |
+| 正文 / 强调 / 链接 | 全部独立控制 | — |
+
+表格的边框、背景色、单元格内边距、表头样式——也都在模板里。
+
+### 高级 CSS
+
+每个元素还支持写入原始 CSS，覆盖面板没有暴露的细节。内置快捷预设：
+
+- 轻微阴影——给元素一层呼吸感
+- 细边框——低调的结构分隔
+- 柔和高亮——淡黄背景标记重点
+- 轻圆角卡片——圆角 + 阴影组合
+
+---
+
+## 9 套内置模板
+
+不用从零开始。内置模板覆盖了主流风格，选一个最接近的，进入模板工作台微调成自己的：
+
+| 模板 | 风格 |
+| --- | --- |
+| Eris桓 | 作者自设，工具默认模板。公众号「Eris 桓」同款 |
+| 极客 | 黑白高对比，青色点缀，开发者文档风 |
+| 少数派 | 红色编辑线系统，中文科技媒体 |
+| 克劳德 | 燕麦暖棕，衬线正文，适合深度长文 |
+| 终端 | 深靛蓝底，IDE 绿色与橙色数据流 |
+| 赛博朋克 | 品红与青的霓虹双色，未来废土 |
+| 水墨 | 楷体正文，直角印章引用，中式写意 |
+| 马卡龙 | 多彩马卡龙色系，甜而不腻 |
+| 包豪斯 | 三原色几何碰撞，零圆角先锋 |
+
+所有模板均可以 **导出为 JSON 文件**，分享给朋友或团队，换设备时一键\`导入\`恢复。
+
+---
+
+## 输出
+
+| 方式 | 场景 |
+| --- | --- |
+| **复制到公众号** | 自动处理微信兼容性，粘贴即保留样式 |
+| **HTML 导出** | 自包含文件，样式内联 |
+| **PDF 导出** | 按预览效果生成，适合定版分享 |
+
+写 Markdown，选模板，复制粘贴。排版结束。
+
+---
+
+## 开始
+
+清空左侧编辑器，粘贴你自己的文章，切换几个模板看看效果。
+
+觉得接近但不完美——点击「模板制作」微调，保存。
+
+导出、导入、分享。
+
+这就是你的模板了。
+
+> 编辑器内容在页面切换时会自动保存。点击右上角 ↺ 随时恢复为本示例。
 `;
 
-export const builtInThemes: Theme[] = [
-  {
-    id: 'default',
-    name: '默认主题',
-    description: '默认样式，最佳实践',
-    css: `/* 默认样式，最佳实践 */
-
-/* 全局属性 */
-#wechat-preview {
-  font-size: 16px;
-  color: #000000;
-  padding: 0 8px;
-  line-height: 1.6;
-  word-break: break-word;
-  text-align: left;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-}
-
-/* 段落 */
-#wechat-preview p {
-  font-size: 16px;
-  margin: 0 0 16px 0;
-  line-height: 1.6;
-  color: #000000;
-}
-
-/* 标题 */
-#wechat-preview h1 {
-  font-size: 26px;
-  font-weight: bold;
-  margin-bottom: 16px;
-  margin-top: 24px;
-  padding-bottom: 12px;
-  border-bottom: 2px solid #07c160;
-  text-align: center;
-  color: #000000;
-}
-
-#wechat-preview h2 {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 12px;
-  margin-top: 24px;
-  padding-left: 12px;
-  border-left: 4px solid #07c160;
-  color: #000000;
-}
-
-#wechat-preview h3 {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  margin-top: 20px;
-  color: #07c160;
-}
-
-#wechat-preview h4 {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  margin-top: 16px;
-  color: #000000;
-}
-
-#wechat-preview h5 {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 6px;
-  margin-top: 16px;
-  color: #000000;
-}
-
-#wechat-preview h6 {
-  font-size: 12px;
-  font-weight: bold;
-  margin-bottom: 4px;
-  margin-top: 14px;
-  color: #000000;
-}
-
-/* 引用 */
-#wechat-preview blockquote {
-  font-size: 15px;
-  padding: 10px 16px;
-  margin-top: 16px;
-  margin-bottom: 16px;
-  color: #5c5c5c;
-  border-left: 4px solid #07c160;
-  background: #f7f7f7;
-  border-radius: 0 6px 6px 0;
-}
-
-#wechat-preview blockquote p {
-  margin: 0;
-  font-size: 15px;
-  color: #5c5c5c;
-}
-
-/* 列表 */
-#wechat-preview ul,
-#wechat-preview ol {
-  padding-left: 24px;
-  margin-top: 12px;
-  margin-bottom: 16px;
-}
-
-#wechat-preview ul {
-  list-style-type: disc;
-}
-
-#wechat-preview ul ul {
-  list-style-type: circle;
-}
-
-#wechat-preview ol {
-  list-style-type: decimal;
-}
-
-#wechat-preview li {
-  line-height: 1.6;
-  font-size: 16px;
-  margin-bottom: 8px;
-}
-
-/* 任务列表 */
-#wechat-preview .contains-task-list {
-  padding-left: 0;
-  list-style-type: none;
-}
-
-#wechat-preview .contains-task-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-#wechat-preview .contains-task-list li input[type="checkbox"] {
-  margin-top: 6px;
-  flex-shrink: 0;
-}
-
-/* 链接 */
-#wechat-preview a {
-  color: #07c160;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-/* 图片 */
-#wechat-preview img {
-  max-width: 100%;
-  border-radius: 8px;
-  margin: 16px 0;
-  display: block;
-}
-
-/* 分隔线 */
-#wechat-preview hr {
-  border-style: solid;
-  border-width: 1px;
-  border-color: #07c160;
-  margin-top: 24px;
-  margin-bottom: 24px;
-}
-
-/* 表格 */
-#wechat-preview table {
-  width: 100% !important;
-  text-align: left;
-  font-size: 15px;
-  border-collapse: collapse;
-  margin: 20px 0;
-}
-
-#wechat-preview table tr {
-  border-top: 1px solid #eee;
-  background-color: white;
-}
-
-#wechat-preview table tr:nth-child(2n) {
-  background-color: #f7f7f7;
-}
-
-#wechat-preview table tr th,
-#wechat-preview table tr td {
-  font-size: 15px;
-  border: 1px solid #eee;
-  padding: 8px 16px;
-  text-align: left;
-  line-height: 1.6;
-}
-
-#wechat-preview table tr th {
-  font-weight: bold;
-  background-color: #f7f7f7;
-  color: #000000;
-}
-
-/* 代码 */
-#wechat-preview pre {
-  padding: 16px;
-  overflow: auto;
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 20px 0;
-  color: #abb2bf;
-  background: #282c34;
-  border-radius: 8px;
-  font-family: monospace;
-}
-
-#wechat-preview pre code {
-  padding: 0;
-  background: transparent;
-  color: #abb2bf;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-#wechat-preview code {
-  font-size: 14px;
-  font-family: monospace;
-  padding: 2px 6px;
-  border-radius: 4px;
-  color: #e83e8c;
-  background: #f7f7f7;
-}
-
-/* 高亮 */
-#wechat-preview mark {
-  background: #fff9c2;
-  padding: 2px 4px;
-  border-radius: 4px;
-  color: #000000;
-}
-
-/* 上标下标 */
-#wechat-preview sub,
-#wechat-preview sup {
-  font-size: 12px;
-}
-
-/* 脚注 */
-#wechat-preview .footnotes {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid #eee;
-}
-
-#wechat-preview .footnotes hr {
-  display: none;
-}
-
-#wechat-preview .footnotes ol {
-  padding-left: 20px;
-}
-
-#wechat-preview .footnotes li {
-  font-size: 14px;
-  color: #666;
-}
-
-#wechat-preview .footnote-ref {
-  font-size: 12px;
-  color: #07c160;
-  text-decoration: none;
-}
-
-#wechat-preview .footnote-backref {
-  font-size: 12px;
-  color: #07c160;
-  text-decoration: none;
-  margin-left: 4px;
-}`
-  },
-  {
-    id: 'academic',
-    name: '学术论文',
-    description: '专业、优雅的学术论文排版风格',
-    css: `/* 高级学术论文主题 - 专业、优雅的排版 */
-
-/* 全局样式 - 学术期刊风格 */
-#wechat-preview {
-  font-size: 16px;
-  color: #1a1a1a;
-  padding: 24px 16px;
-  line-height: 1.8;
-  word-break: break-word;
-  text-align: justify;
-  font-family: "Songti SC", "SimSun", "PingFang SC", serif;
-  background: #fefefe;
-}
-
-/* 段落 - 学术严谨风格 */
-#wechat-preview p {
-  font-size: 16px;
-  margin: 0 0 18px 0;
-  line-height: 1.8;
-  color: #2d2d2d;
-  text-align: justify;
-}
-
-#wechat-preview p:first-of-type {
-  margin-top: 0;
-}
-
-#wechat-preview p:last-of-type {
-  margin-bottom: 0;
-}
-
-/* 标题层级 - 学术期刊风格 */
-#wechat-preview h1,
-#wechat-preview h2,
-#wechat-preview h3,
-#wechat-preview h4,
-#wechat-preview h5,
-#wechat-preview h6 {
-  margin-top: 0;
-  margin-bottom: 16px;
-  padding: 0;
-  font-weight: bold;
-  color: #0f172a;
-  text-align: left;
-  line-height: 1.35;
-}
-
-/* 一级标题 - 论文标题 */
-#wechat-preview h1 {
-  font-size: 28px;
-  font-weight: bold;
-  margin-top: 0;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid #0f172a;
-  text-align: center;
-  font-family: "Songti SC", "SimSun", serif;
-}
-
-/* 二级标题 - 主要章节 */
-#wechat-preview h2 {
-  font-size: 24px;
-  font-weight: bold;
-  margin-top: 40px;
-  margin-bottom: 20px;
-  padding-top: 8px;
-  padding-bottom: 8px;
-  border-top: 1px solid #e2e8f0;
-  border-bottom: 1px solid #e2e8f0;
-  background: #f8fafc;
-  padding-left: 16px;
-}
-
-/* 三级标题 - 子章节 */
-#wechat-preview h3 {
-  font-size: 20px;
-  font-weight: bold;
-  margin-top: 32px;
-  margin-bottom: 16px;
-  color: #1e40af;
-  padding-left: 20px;
-  border-left: 4px solid #1e40af;
-}
-
-/* 四级标题 - 小节 */
-#wechat-preview h4 {
-  font-size: 18px;
-  font-weight: bold;
-  margin-top: 24px;
-  margin-bottom: 12px;
-  color: #374151;
-  font-style: italic;
-}
-
-/* 五级标题 */
-#wechat-preview h5 {
-  font-size: 16px;
-  font-weight: bold;
-  margin-top: 20px;
-  margin-bottom: 10px;
-  color: #4b5563;
-  font-size: 14px;
-}
-
-/* 六级标题 */
-#wechat-preview h6 {
-  font-size: 15px;
-  font-weight: bold;
-  margin-top: 16px;
-  margin-bottom: 8px;
-  color: #6b7280;
-}
-
-/* 列表 - 学术规范风格 */
-#wechat-preview ul,
-#wechat-preview ol {
-  margin-top: 12px;
-  margin-bottom: 18px;
-  padding-left: 32px;
-  color: #2d2d2d;
-}
-
-#wechat-preview ul {
-  list-style-type: disc;
-}
-
-#wechat-preview ul ul {
-  list-style-type: circle;
-  margin-top: 6px;
-  padding-left: 24px;
-}
-
-#wechat-preview ol {
-  list-style-type: decimal;
-}
-
-#wechat-preview ol ol {
-  list-style-type: lower-alpha;
-}
-
-#wechat-preview li {
-  line-height: 1.8;
-  font-size: 16px;
-  margin-bottom: 8px;
-  color: #2d2d2d;
-}
-
-#wechat-preview li:last-child {
-  margin-bottom: 0;
-}
-
-#wechat-preview li section {
-  margin-top: 4px;
-  margin-bottom: 4px;
-  line-height: 1.8;
-  text-align: justify;
-  color: #2d2d2d;
-}
-
-/* 任务列表 */
-#wechat-preview .contains-task-list {
-  padding-left: 0;
-  list-style-type: none;
-}
-
-#wechat-preview .contains-task-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-#wechat-preview .contains-task-list li input[type="checkbox"] {
-  margin-top: 6px;
-  flex-shrink: 0;
-}
-
-/* 引用 - 学术引用风格 */
-#wechat-preview blockquote {
-  margin: 24px 0;
-  padding: 20px 24px;
-  border-left: 4px solid #1e40af;
-  background: #f0f7ff;
-  border-radius: 0 8px 8px 0;
-}
-
-#wechat-preview blockquote p {
-  margin: 0 0 12px 0;
-  font-size: 15px;
-  color: #475569;
-  font-style: italic;
-  line-height: 1.8;
-}
-
-#wechat-preview blockquote p:last-child {
-  margin-bottom: 0;
-}
-
-/* 链接 - 学术链接风格 */
-#wechat-preview a {
-  color: #1e40af;
-  text-decoration: none;
-  font-weight: 500;
-  border-bottom: 1px solid #1e40af;
-}
-
-/* 强调 - 学术强调风格 */
-#wechat-preview strong {
-  font-weight: bold;
-  color: #0f172a;
-}
-
-#wechat-preview em {
-  font-style: italic;
-  color: #374151;
-}
-
-#wechat-preview em strong {
-  font-weight: bold;
-  color: #0f172a;
-  font-style: italic;
-}
-
-#wechat-preview del {
-  text-decoration: line-through;
-  color: #9ca3af;
-}
-
-#wechat-preview u {
-  text-decoration: underline;
-}
-
-/* 高亮 - 学术高亮风格 */
-#wechat-preview mark {
-  background: #fef3c7;
-  padding: 0 4px;
-  color: #0f172a;
-  font-weight: 500;
-}
-
-/* 分隔线 - 学术分隔风格 */
-#wechat-preview hr {
-  border: none;
-  height: 1px;
-  margin: 48px auto;
-  background: #e2e8f0;
-  width: 80%;
-}
-
-/* 图片 - 学术图片风格 */
-#wechat-preview img {
-  display: block;
-  margin: 24px auto;
-  max-width: 100%;
-  border-radius: 8px;
-  border: 1px solid #e2e8f0;
-}
-
-#wechat-preview figure {
-  margin: 24px 0;
-  text-align: center;
-}
-
-#wechat-preview figcaption {
-  margin-top: 12px;
-  text-align: center;
-  color: #64748b;
-  font-size: 14px;
-  font-style: italic;
-  padding: 8px 16px;
-  background: #f8fafc;
-  border-radius: 4px;
-  display: inline-block;
-}
-
-/* 代码 - 学术代码风格 */
-#wechat-preview code {
-  font-size: 14px;
-  font-family: monospace;
-  padding: 3px 8px;
-  border-radius: 4px;
-  color: #dc2626;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-}
-
-#wechat-preview pre {
-  margin: 24px 0;
-  padding: 20px;
-  overflow-x: auto;
-  background: #0f172a;
-  border-radius: 8px;
-  border: 1px solid #334155;
-}
-
-#wechat-preview pre code {
-  display: block;
-  padding: 0;
-  background: transparent;
-  border: none;
-  color: #e2e8f0;
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre;
-}
-
-/* 表格 - 学术表格风格 */
-#wechat-preview table {
-  width: 100%;
-  border-collapse: collapse;
-  margin: 24px 0;
-  font-size: 14px;
-  background: #ffffff;
-  border-radius: 8px;
-  overflow: hidden;
-  border: 1px solid #e2e8f0;
-}
-
-#wechat-preview table tr th {
-  background: #1e40af;
-  color: #ffffff;
-  font-weight: bold;
-  padding: 14px 16px;
-  text-align: left;
-  border: none;
-  font-size: 12px;
-}
-
-#wechat-preview table tr {
-  border-bottom: 1px solid #e2e8f0;
-  background: #ffffff;
-}
-
-#wechat-preview table tr:nth-child(2n) {
-  background: #fafafa;
-}
-
-#wechat-preview table tr td {
-  padding: 12px 16px;
-  text-align: left;
-  border: none;
-  color: #374151;
-  line-height: 1.6;
-}
-
-/* 脚注 - 学术脚注风格 */
-#wechat-preview .footnotes {
-  margin-top: 48px;
-  padding-top: 24px;
-  border-top: 2px solid #e2e8f0;
-}
-
-#wechat-preview .footnotes hr {
-  display: none;
-}
-
-#wechat-preview .footnotes ol {
-  padding-left: 24px;
-  margin: 0;
-}
-
-#wechat-preview .footnotes li {
-  font-size: 14px;
-  color: #475569;
-  margin-bottom: 12px;
-  line-height: 1.6;
-}
-
-#wechat-preview .footnote-word,
-#wechat-preview .footnote-ref {
-  color: #1e40af;
-  font-weight: 500;
-  text-decoration: none;
-  font-size: 12px;
-  vertical-align: super;
-}
-
-#wechat-preview .footnote-backref {
-  color: #64748b;
-  font-size: 12px;
-  text-decoration: none;
-  margin-left: 4px;
-}
-
-/* 上下标 */
-#wechat-preview sub,
-#wechat-preview sup {
-  font-size: 12px;
-}
-
-/* 代码高亮主题 */
-#wechat-preview .hljs {
-  display: block;
-  overflow-x: auto;
-  padding: 0;
-  color: #e2e8f0;
-  background: transparent;
-}
-
-#wechat-preview .hljs-comment,
-#wechat-preview .hljs-quote {
-  color: #94a3b8;
-  font-style: italic;
-}
-
-#wechat-preview .hljs-keyword,
-#wechat-preview .hljs-selector-tag,
-#wechat-preview .hljs-subst {
-  color: #60a5fa;
-  font-weight: bold;
-}
-
-#wechat-preview .hljs-number,
-#wechat-preview .hljs-literal,
-#wechat-preview .hljs-variable,
-#wechat-preview .hljs-template-variable,
-#wechat-preview .hljs-tag .hljs-attr {
-  color: #fbbf24;
-}
-
-#wechat-preview .hljs-string,
-#wechat-preview .hljs-doctag {
-  color: #34d399;
-}
-
-#wechat-preview .hljs-title,
-#wechat-preview .hljs-section,
-#wechat-preview .hljs-selector-id {
-  color: #f472b6;
-  font-weight: bold;
-}
-
-#wechat-preview .hljs-type,
-#wechat-preview .hljs-class .hljs-title {
-  color: #93c5fd;
-  font-weight: bold;
-}
-
-#wechat-preview .hljs-tag,
-#wechat-preview .hljs-name,
-#wechat-preview .hljs-attribute {
-  color: #60a5fa;
-}
-
-#wechat-preview .hljs-regexp,
-#wechat-preview .hljs-link {
-  color: #34d399;
-}
-
-#wechat-preview .hljs-symbol,
-#wechat-preview .hljs-bullet {
-  color: #f472b6;
-}
-
-#wechat-preview .hljs-built_in,
-#wechat-preview .hljs-builtin-name {
-  color: #93c5fd;
-}
-
-#wechat-preview .hljs-meta {
-  color: #94a3b8;
-  font-weight: bold;
-}
-`
-  },
-  {
-    id: 'aurora',
-    name: '极光玻璃',
-    description: '现代化玻璃态设计',
-    css: `/* 极光玻璃主题 */
-
-#wechat-preview {
-  font-size: 16px;
-  color: #2d3748;
-  padding: 0 8px;
-  line-height: 1.7;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-  background: #ffffff;
-}
-
-#wechat-preview h1 {
-  font-size: 32px;
-  font-weight: bold;
-  text-align: center;
-  margin: 32px 0;
-  padding: 24px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  color: white;
-}
-
-#wechat-preview h2 {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 28px 0 16px 0;
-  padding: 16px 20px;
-  background: #f0f0ff;
-  border-left: 4px solid #667eea;
-  border-radius: 12px;
-  color: #1a1a2e;
-}
-
-#wechat-preview h3 {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 24px 0 12px 0;
-  color: #667eea;
-  padding-left: 16px;
-  border-left: 4px solid #764ba2;
-}
-
-#wechat-preview p {
-  font-size: 16px;
-  line-height: 1.8;
-  color: #2d3748;
-  margin: 12px 0;
-  padding: 12px 16px;
-  background: #f8f9ff;
-  border-radius: 12px;
-  border: 1px solid #e6e8ff;
-}
-
-#wechat-preview blockquote {
-  margin: 20px 0;
-  padding: 20px 24px;
-  background: #f0f0ff;
-  border-left: 4px solid #667eea;
-  border-radius: 16px;
-  color: #4a5568;
-}
-
-#wechat-preview blockquote p {
-  background: transparent;
-  padding: 0;
-  border: none;
-  color: #4a5568;
-}
-
-#wechat-preview code {
-  font-family: monospace;
-  font-size: 14px;
-  padding: 4px 10px;
-  border-radius: 8px;
-  background: #667eea;
-  color: white;
-  font-weight: 500;
-}
-
-#wechat-preview pre {
-  background: #1a1a2e;
-  padding: 24px;
-  border-radius: 16px;
-  font-size: 14px;
-  border: 1px solid #333;
-}
-
-#wechat-preview pre code {
-  background: transparent;
-  padding: 0;
-  color: #e2e8f0;
-}
-
-#wechat-preview a {
-  color: #667eea;
-  text-decoration: none;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 4px;
-  background: #f0f0ff;
-}
-
-#wechat-preview img {
-  max-width: 100%;
-  border-radius: 16px;
-  margin: 20px 0;
-  border: 4px solid #f0f0ff;
-}
-
-#wechat-preview table {
-  width: 100% !important;
-  border-collapse: collapse;
-  margin: 24px 0;
-  border-radius: 16px;
-  overflow: hidden;
-  border: 1px solid #e6e8ff;
-}
-
-#wechat-preview table th {
-  background: #667eea;
-  color: white;
-  font-weight: bold;
-  padding: 16px;
-  border: none;
-}
-
-#wechat-preview table td {
-  padding: 14px 16px;
-  border: 1px solid #e6e8ff;
-  background: #ffffff;
-  color: #2d3748;
-}
-
-#wechat-preview ul,
-#wechat-preview ol {
-  padding-left: 28px;
-  margin: 16px 0;
-}
-
-#wechat-preview li {
-  padding: 8px 0;
-  color: #2d3748;
-}
-
-#wechat-preview hr {
-  border: none;
-  height: 4px;
-  background: #667eea;
-  border-radius: 2px;
-  margin: 32px 0;
-}
-
-#wechat-preview mark {
-  background: #ffd89b;
-  color: #19547b;
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-weight: 600;
-}`
-  },
-  {
-    id: 'bauhaus',
-    name: '包豪斯',
-    description: '现代主义几何设计风格',
-    css: `/* 包豪斯主题 */
-
-#wechat-preview {
-  font-size: 16px;
-  color: #000000;
-  padding: 0 8px;
-  line-height: 1.6;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-  background: #ffffff;
-}
-
-#wechat-preview h1 {
-  font-size: 36px;
-  font-weight: bold;
-  text-align: left;
-  margin: 40px 0 32px 0;
-  padding: 24px 0;
-  border-bottom: 8px solid #ff0000;
-  color: #000000;
-  text-transform: uppercase;
-}
-
-#wechat-preview h2 {
-  font-size: 28px;
-  font-weight: bold;
-  margin: 36px 0 20px 0;
-  padding: 0 0 8px 0;
-  border-left: 12px solid #0000ff;
-  border-bottom: 4px solid #ffff00;
-  color: #000000;
-  text-transform: uppercase;
-}
-
-#wechat-preview h3 {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 28px 0 16px 0;
-  padding: 12px 16px;
-  background: #000000;
-  color: #ffffff;
-  display: inline-block;
-  text-transform: uppercase;
-}
-
-#wechat-preview h4 {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 24px 0 12px 0;
-  color: #ff0000;
-  text-transform: uppercase;
-}
-
-#wechat-preview p {
-  font-size: 16px;
-  line-height: 1.8;
-  margin: 16px 0;
-  color: #333333;
-  padding: 16px;
-  border-left: 4px solid #000000;
-  background: #f5f5f5;
-}
-
-#wechat-preview blockquote {
-  margin: 28px 0;
-  padding: 24px;
-  background: #ffff00;
-  border-left: none;
-  border-radius: 0;
-  color: #000000;
-  font-weight: bold;
-  border: 4px solid #000000;
-}
-
-#wechat-preview blockquote p {
-  background: transparent;
-  padding: 0;
-  border-left: none;
-  color: #000000;
-  font-size: 18px;
-}
-
-#wechat-preview code {
-  font-family: monospace;
-  font-size: 14px;
-  padding: 4px 8px;
-  background: #ff0000;
-  color: #ffffff;
-  font-weight: bold;
-}
-
-#wechat-preview pre {
-  background: #0000ff;
-  padding: 24px;
-  border-radius: 0;
-  font-size: 14px;
-  border: 4px solid #000000;
-}
-
-#wechat-preview pre code {
-  background: transparent;
-  color: #ffffff;
-  padding: 0;
-}
-
-#wechat-preview a {
-  color: #0000ff;
-  text-decoration: none;
-  font-weight: bold;
-  border-bottom: 3px solid #ff0000;
-  padding-bottom: 2px;
-}
-
-#wechat-preview img {
-  max-width: 100%;
-  margin: 24px 0;
-  border: 8px solid #000000;
-}
-
-#wechat-preview table {
-  width: 100% !important;
-  border-collapse: collapse;
-  margin: 24px 0;
-  border: 4px solid #000000;
-}
-
-#wechat-preview table th {
-  background: #000000;
-  color: #ffffff;
-  font-weight: bold;
-  padding: 16px;
-  border: 4px solid #000000;
-  text-transform: uppercase;
-}
-
-#wechat-preview table td {
-  padding: 16px;
-  border: 4px solid #000000;
-  background: #ffffff;
-}
-
-#wechat-preview table tr:nth-child(even) td {
-  background: #ffff00;
-}
-
-#wechat-preview ul,
-#wechat-preview ol {
-  padding-left: 0;
-  margin: 20px 0;
-  list-style: none;
-}
-
-#wechat-preview li {
-  padding: 12px 16px;
-  margin: 8px 0;
-  background: #f5f5f5;
-  border-left: 8px solid #ff0000;
-  font-weight: 500;
-}
-
-#wechat-preview li:nth-child(2) {
-  border-left-color: #0000ff;
-}
-
-#wechat-preview li:nth-child(3) {
-  border-left-color: #ffff00;
-}
-
-#wechat-preview li:nth-child(4) {
-  border-left-color: #ff0000;
-}
-
-#wechat-preview hr {
-  border: none;
-  height: 12px;
-  background: #ff0000;
-  margin: 40px 0;
-}
-
-#wechat-preview mark {
-  background: #ffff00;
-  color: #000000;
-  padding: 2px 6px;
-  font-weight: bold;
-}`
-  },
-  {
-    id: 'cyberpunk',
-    name: '赛博朋克',
-    description: '未来科技感风格',
-    css: `/* 赛博朋克主题 */
-
-#wechat-preview {
-  font-size: 15px;
-  color: #00ff41;
-  padding: 0 8px;
-  line-height: 1.6;
-  font-family: "Courier New", monospace;
-  background: #0d0221;
-}
-
-#wechat-preview h1 {
-  font-size: 36px;
-  font-weight: bold;
-  text-align: center;
-  margin: 32px 0;
-  padding: 20px;
-  background: #ff00ff;
-  color: #000000;
-  text-transform: uppercase;
-  letter-spacing: 4px;
-  border: 2px solid #00ff41;
-}
-
-#wechat-preview h2 {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 28px 0 16px 0;
-  padding: 12px 20px;
-  border-left: 4px solid #ff00ff;
-  border-bottom: 2px solid #00ffff;
-  color: #00ff41;
-  text-transform: uppercase;
-  background: rgba(0, 255, 65, 0.1);
-}
-
-#wechat-preview h3 {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 24px 0 12px 0;
-  color: #ff00ff;
-  text-transform: uppercase;
-  border-bottom: 1px dashed #00ffff;
-  padding-bottom: 8px;
-}
-
-#wechat-preview h4 {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 20px 0 10px 0;
-  color: #00ffff;
-}
-
-#wechat-preview p {
-  font-size: 15px;
-  line-height: 1.8;
-  margin: 12px 0;
-  color: #00ff41;
-  padding: 16px;
-  background: rgba(0, 0, 0, 0.5);
-  border: 1px solid #00ff41;
-}
-
-#wechat-preview blockquote {
-  margin: 24px 0;
-  padding: 20px 24px;
-  background: rgba(255, 0, 255, 0.2);
-  border-left: 4px solid #00ffff;
-  border-right: 4px solid #ff00ff;
-  color: #00ffff;
-  font-style: italic;
-}
-
-#wechat-preview blockquote p {
-  background: transparent;
-  border: none;
-  padding: 0;
-  color: #00ffff;
-}
-
-#wechat-preview code {
-  font-family: monospace;
-  font-size: 14px;
-  padding: 4px 8px;
-  background: #000000;
-  color: #00ff41;
-  border: 1px solid #ff00ff;
-  font-weight: bold;
-}
-
-#wechat-preview pre {
-  background: #000000;
-  padding: 20px;
-  border: 2px solid #00ffff;
-  font-size: 14px;
-}
-
-#wechat-preview pre code {
-  background: transparent;
-  border: none;
-  padding: 0;
-  color: #00ff41;
-}
-
-#wechat-preview a {
-  color: #00ffff;
-  text-decoration: none;
-  font-weight: bold;
-  border-bottom: 1px solid #ff00ff;
-  text-transform: uppercase;
-}
-
-#wechat-preview img {
-  max-width: 100%;
-  margin: 20px 0;
-  border: 3px solid #00ff41;
-}
-
-#wechat-preview table {
-  width: 100% !important;
-  border-collapse: collapse;
-  margin: 24px 0;
-  border: 2px solid #00ff41;
-}
-
-#wechat-preview table th {
-  background: #ff00ff;
-  color: #000000;
-  font-weight: bold;
-  padding: 12px 16px;
-  text-transform: uppercase;
-  border: 1px solid #00ffff;
-}
-
-#wechat-preview table td {
-  padding: 12px 16px;
-  border: 1px solid #00ff41;
-  color: #00ff41;
-  background: rgba(0, 0, 0, 0.3);
-}
-
-#wechat-preview table tr:nth-child(even) td {
-  background: rgba(255, 0, 255, 0.1);
-}
-
-#wechat-preview ul,
-#wechat-preview ol {
-  padding-left: 28px;
-  margin: 16px 0;
-  list-style: none;
-}
-
-#wechat-preview li {
-  padding: 8px 0;
-  color: #00ff41;
-  padding-left: 24px;
-  position: relative;
-}
-
-#wechat-preview li::before {
-  content: '▶';
-  position: absolute;
-  left: 0;
-  color: #ff00ff;
-}
-
-#wechat-preview hr {
-  border: none;
-  height: 2px;
-  background: #00ff41;
-  margin: 32px 0;
-}
-
-#wechat-preview mark {
-  background: #ff00ff;
-  color: #000000;
-  padding: 2px 6px;
-  font-weight: bold;
-}`
-  },
-  {
-    id: 'newsletter',
-    name: '新闻通讯',
-    description: '适合新闻和通讯类文章',
-    css: `/* 新闻通讯主题 */
-
-#wechat-preview {
-  font-size: 16px;
-  color: #333333;
-  padding: 0 16px;
-  line-height: 1.7;
-  font-family: "Songti SC", "SimSun", "PingFang SC", serif;
-  background: #ffffff;
-}
-
-#wechat-preview h1 {
-  font-size: 32px;
-  font-weight: bold;
-  text-align: center;
-  margin: 32px 0 8px 0;
-  padding: 0;
-  border: none;
-  color: #1a1a1a;
-  line-height: 1.3;
-}
-
-#wechat-preview h2 {
-  font-size: 24px;
-  font-weight: bold;
-  margin: 32px 0 16px 0;
-  padding: 0 0 8px 0;
-  border-bottom: 2px solid #333;
-  color: #1a1a1a;
-}
-
-#wechat-preview h3 {
-  font-size: 20px;
-  font-weight: bold;
-  margin: 24px 0 12px 0;
-  color: #cc0000;
-  font-style: italic;
-}
-
-#wechat-preview h4 {
-  font-size: 18px;
-  font-weight: bold;
-  margin: 20px 0 10px 0;
-  color: #333;
-}
-
-#wechat-preview p {
-  font-size: 16px;
-  line-height: 1.8;
-  margin: 16px 0;
-  color: #333;
-  text-align: justify;
-  text-indent: 2em;
-}
-
-#wechat-preview p:first-of-type {
-  font-size: 18px;
-  color: #555;
-  font-style: italic;
-}
-
-#wechat-preview blockquote {
-  margin: 24px 0;
-  padding: 20px 24px;
-  border-left: 4px solid #cc0000;
-  background: #f9f9f9;
-  color: #555;
-  font-style: italic;
-}
-
-#wechat-preview blockquote p {
-  text-indent: 0;
-  font-style: italic;
-}
-
-#wechat-preview code {
-  font-family: monospace;
-  font-size: 14px;
-  padding: 2px 6px;
-  background: #f0f0f0;
-  color: #cc0000;
-}
-
-#wechat-preview pre {
-  background: #2d2d2d;
-  padding: 20px;
-  margin: 24px 0;
-  font-size: 14px;
-  border-radius: 4px;
-}
-
-#wechat-preview pre code {
-  background: transparent;
-  color: #f0f0f0;
-  padding: 0;
-}
-
-#wechat-preview a {
-  color: #0066cc;
-  text-decoration: underline;
-}
-
-#wechat-preview img {
-  max-width: 100%;
-  margin: 24px 0;
-  border: 1px solid #ddd;
-  padding: 4px;
-}
-
-#wechat-preview table {
-  width: 100% !important;
-  border-collapse: collapse;
-  margin: 24px 0;
-  font-size: 15px;
-  border: 1px solid #ddd;
-}
-
-#wechat-preview table th {
-  background: #333;
-  color: white;
-  font-weight: bold;
-  padding: 12px 16px;
-  border: 1px solid #333;
-}
-
-#wechat-preview table td {
-  padding: 10px 16px;
-  border: 1px solid #ddd;
-}
-
-#wechat-preview table tr:nth-child(even) {
-  background: #f9f9f9;
-}
-
-#wechat-preview ul,
-#wechat-preview ol {
-  padding-left: 28px;
-  margin: 16px 0;
-}
-
-#wechat-preview li {
-  padding: 4px 0;
-}
-
-#wechat-preview hr {
-  border: none;
-  border-top: 1px solid #ddd;
-  margin: 32px 0;
-}
-
-#wechat-preview mark {
-  background: #fff3cd;
-  color: #856404;
-  padding: 2px 6px;
-  border-radius: 4px;
-}`
-  },
-  {
-    id: 'claude',
-    name: 'Claude',
-    description: '温暖优雅的文学风格，灵感来自 Claude',
-    css: `/* Claude 主题 - 温暖优雅的文学风格 */
-
-#wechat-preview {
-  font-size: 17px;
-  color: #141413;
-  padding: 0 8px;
-  line-height: 1.60;
-  word-break: break-word;
-  text-align: left;
-  font-family: "PingFang SC", "Microsoft YaHei", serif;
-  background: #f5f4ed;
-}
-
-#wechat-preview p {
-  font-size: 17px;
-  margin: 0 0 16px 0;
-  line-height: 1.60;
-  color: #4d4c48;
-}
-
-#wechat-preview h1 {
-  font-size: 32px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  margin-top: 30px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #e8e6dc;
-  text-align: center;
-  color: #141413;
-  line-height: 1.10;
-}
-
-#wechat-preview h2 {
-  font-size: 26px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  margin-top: 30px;
-  padding-left: 12px;
-  border-left: 3px solid #c96442;
-  color: #141413;
-  line-height: 1.20;
-}
-
-#wechat-preview h3 {
-  font-size: 22px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  margin-top: 24px;
-  color: #c96442;
-  line-height: 1.20;
-}
-
-#wechat-preview h4 {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 6px;
-  margin-top: 20px;
-  color: #141413;
-}
-
-#wechat-preview h5 {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 5px;
-  margin-top: 18px;
-  color: #141413;
-}
-
-#wechat-preview h6 {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 4px;
-  margin-top: 16px;
-  color: #141413;
-}
-
-#wechat-preview blockquote {
-  font-size: 15px;
-  padding: 16px 20px;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  color: #87867f;
-  border-left: 3px solid #c96442;
-  background: #faf9f5;
-  border-radius: 8px;
-}
-
-#wechat-preview blockquote p {
-  margin: 0;
-  font-size: 15px;
-  color: #5e5d59;
-}
-
-#wechat-preview ul,
-#wechat-preview ol {
-  padding-left: 28px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-  color: #4d4c48;
-}
-
-#wechat-preview ul {
-  list-style-type: disc;
-}
-
-#wechat-preview ul ul {
-  list-style-type: circle;
-}
-
-#wechat-preview ol {
-  list-style-type: decimal;
-}
-
-#wechat-preview li {
-  line-height: 1.7;
-  font-size: 17px;
-  color: #4d4c48;
-  margin-bottom: 8px;
-}
-
-#wechat-preview .contains-task-list {
-  padding-left: 0;
-  list-style-type: none;
-}
-
-#wechat-preview .contains-task-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-}
-
-#wechat-preview .contains-task-list li input[type="checkbox"] {
-  margin-top: 6px;
-  flex-shrink: 0;
-}
-
-#wechat-preview a {
-  color: #c96442;
-  text-decoration: none;
-  font-weight: 500;
-  border-bottom: 1px solid #e8e6dc;
-}
-
-#wechat-preview img {
-  max-width: 100%;
-  border-radius: 12px;
-  margin: 16px 0;
-  display: block;
-}
-
-#wechat-preview hr {
-  border-style: solid;
-  border-width: 1px;
-  border-color: #e8e6dc;
-  margin-top: 28px;
-  margin-bottom: 28px;
-}
-
-#wechat-preview table {
-  width: 100% !important;
-  text-align: left;
-  font-size: 15px;
-  border-collapse: collapse;
-  margin: 20px 0;
-  border: 1px solid #e8e6dc;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-#wechat-preview table tr {
-  border-top: 1px solid #e8e6dc;
-  background-color: #faf9f5;
-}
-
-#wechat-preview table tr:nth-child(2n) {
-  background-color: #f5f4ed;
-}
-
-#wechat-preview table tr th,
-#wechat-preview table tr td {
-  font-size: 15px;
-  border: 1px solid #e8e6dc;
-  padding: 10px 16px;
-  text-align: left;
-  line-height: 1.6;
-}
-
-#wechat-preview table tr th {
-  font-weight: bold;
-  background-color: #faf9f5;
-  color: #141413;
-}
-
-#wechat-preview pre {
-  padding: 16px;
-  overflow: auto;
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 20px 0;
-  color: #141413;
-  background: #faf9f5;
-  border-radius: 8px;
-  border: 1px solid #e8e6dc;
-  font-family: monospace;
-}
-
-#wechat-preview pre code {
-  padding: 0;
-  background: transparent;
-  color: #141413;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-#wechat-preview code {
-  font-size: 14px;
-  font-family: monospace;
-  padding: 3px 6px;
-  border-radius: 4px;
-  color: #c96442;
-  background: #faf9f5;
-}
-
-#wechat-preview mark {
-  background: #fdecc8;
-  padding: 2px 4px;
-  border-radius: 4px;
-  color: #141413;
-}
-
-#wechat-preview sub,
-#wechat-preview sup {
-  font-size: 12px;
-}
-
-#wechat-preview .footnotes {
-  margin-top: 28px;
-  padding-top: 16px;
-  border-top: 1px solid #e8e6dc;
-}
-
-#wechat-preview .footnotes hr {
-  display: none;
-}
-
-#wechat-preview .footnotes ol {
-  padding-left: 24px;
-}
-
-#wechat-preview .footnotes li {
-  font-size: 14px;
-  color: #87867f;
-}
-
-#wechat-preview .footnote-ref {
-  font-size: 12px;
-  color: #c96442;
-  text-decoration: none;
-  border: none;
-}
-
-#wechat-preview .footnote-backref {
-  font-size: 12px;
-  color: #c96442;
-  text-decoration: none;
-  border: none;
-  margin-left: 4px;
-}
-`
-  },
-  {
-    id: 'binance',
-    name: 'Binance',
-    description: '专业金融科技风格，灵感来自 Binance',
-    css: `/* Binance 主题 - 专业金融科技风格 */
-
-#wechat-preview {
-  font-size: 16px;
-  color: #1E2026;
-  padding: 0 8px;
-  line-height: 1.50;
-  word-break: break-word;
-  text-align: left;
-  font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
-  background: #FFFFFF;
-}
-
-#wechat-preview p {
-  font-size: 16px;
-  margin: 0 0 16px 0;
-  line-height: 1.50;
-  color: #32313A;
-}
-
-#wechat-preview h1 {
-  font-size: 28px;
-  font-weight: bold;
-  margin-bottom: 16px;
-  margin-top: 32px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #E6E8EA;
-  color: #1E2026;
-  line-height: 1.00;
-  text-align: left;
-}
-
-#wechat-preview h2 {
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 12px;
-  margin-top: 32px;
-  color: #1E2026;
-  line-height: 1.00;
-}
-
-#wechat-preview h3 {
-  font-size: 20px;
-  font-weight: bold;
-  margin-bottom: 10px;
-  margin-top: 24px;
-  color: #1E2026;
-  line-height: 1.25;
-}
-
-#wechat-preview h4 {
-  font-size: 18px;
-  font-weight: bold;
-  margin-bottom: 8px;
-  margin-top: 20px;
-  color: #1E2026;
-}
-
-#wechat-preview h5 {
-  font-size: 16px;
-  font-weight: bold;
-  margin-bottom: 6px;
-  margin-top: 16px;
-  color: #1E2026;
-}
-
-#wechat-preview h6 {
-  font-size: 14px;
-  font-weight: bold;
-  margin-bottom: 4px;
-  margin-top: 14px;
-  color: #1E2026;
-}
-
-#wechat-preview blockquote {
-  font-size: 15px;
-  padding: 16px 20px;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  color: #848E9C;
-  border-left: 3px solid #F0B90B;
-  background: #F5F5F5;
-  border-radius: 8px;
-}
-
-#wechat-preview blockquote p {
-  margin: 0;
-  font-size: 15px;
-  color: #848E9C;
-}
-
-#wechat-preview ul,
-#wechat-preview ol {
-  padding-left: 28px;
-  margin-top: 12px;
-  margin-bottom: 16px;
-  color: #32313A;
-}
-
-#wechat-preview ul {
-  list-style-type: disc;
-}
-
-#wechat-preview ul ul {
-  list-style-type: circle;
-}
-
-#wechat-preview ol {
-  list-style-type: decimal;
-}
-
-#wechat-preview li {
-  line-height: 1.50;
-  font-size: 16px;
-  color: #32313A;
-  margin-bottom: 8px;
-}
-
-#wechat-preview .contains-task-list {
-  padding-left: 0;
-  list-style-type: none;
-}
-
-#wechat-preview .contains-task-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-#wechat-preview .contains-task-list li input[type="checkbox"] {
-  margin-top: 6px;
-  flex-shrink: 0;
-}
-
-#wechat-preview a {
-  color: #F0B90B;
-  text-decoration: none;
-  font-weight: bold;
-  border-bottom: 1px solid #F0B90B;
-}
-
-#wechat-preview img {
-  max-width: 100%;
-  border-radius: 12px;
-  margin: 20px 0;
-  display: block;
-  border: 1px solid #E6E8EA;
-}
-
-#wechat-preview hr {
-  border-style: solid;
-  border-width: 1px;
-  border-color: #E6E8EA;
-  margin-top: 32px;
-  margin-bottom: 32px;
-}
-
-#wechat-preview table {
-  width: 100% !important;
-  text-align: left;
-  font-size: 14px;
-  border-collapse: collapse;
-  margin: 24px 0;
-  border: 1px solid #E6E8EA;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-#wechat-preview table tr {
-  border-top: 1px solid #E6E8EA;
-  background-color: #FFFFFF;
-}
-
-#wechat-preview table tr:nth-child(2n) {
-  background-color: #F5F5F5;
-}
-
-#wechat-preview table tr th,
-#wechat-preview table tr td {
-  font-size: 14px;
-  border: 1px solid #E6E8EA;
-  padding: 12px 16px;
-  text-align: left;
-  line-height: 1.50;
-}
-
-#wechat-preview table tr th {
-  font-weight: bold;
-  background: #F0B90B;
-  color: #1E2026;
-  text-transform: uppercase;
-  font-size: 12px;
-}
-
-#wechat-preview pre {
-  padding: 20px;
-  overflow: auto;
-  font-size: 14px;
-  line-height: 1.6;
-  margin: 24px 0;
-  color: #E2E8F0;
-  background: #222126;
-  border-radius: 8px;
-  border: 1px solid #334155;
-  font-family: monospace;
-}
-
-#wechat-preview pre code {
-  padding: 0;
-  background: transparent;
-  color: #E2E8F0;
-  font-size: 14px;
-  line-height: 1.6;
-}
-
-#wechat-preview code {
-  font-size: 14px;
-  font-family: monospace;
-  padding: 3px 8px;
-  border-radius: 4px;
-  color: #1E2026;
-  background: #F0B90B;
-  font-weight: 500;
-}
-
-#wechat-preview mark {
-  background: #FFD000;
-  padding: 2px 4px;
-  border-radius: 4px;
-  color: #1E2026;
-  font-weight: 500;
-}
-
-#wechat-preview sub,
-#wechat-preview sup {
-  font-size: 12px;
-}
-
-#wechat-preview .footnotes {
-  margin-top: 32px;
-  padding-top: 20px;
-  border-top: 1px solid #E6E8EA;
-}
-
-#wechat-preview .footnotes hr {
-  display: none;
-}
-
-#wechat-preview .footnotes ol {
-  padding-left: 24px;
-}
-
-#wechat-preview .footnotes li {
-  font-size: 14px;
-  color: #848E9C;
-}
-
-#wechat-preview .footnote-ref {
-  font-size: 12px;
-  color: #F0B90B;
-  text-decoration: none;
-  border: none;
-  font-weight: bold;
-}
-
-#wechat-preview .footnote-backref {
-  font-size: 12px;
-  color: #848E9C;
-  text-decoration: none;
-  border: none;
-  margin-left: 4px;
-}
-
-#wechat-preview .callout {
-  margin: 24px 0;
-  padding: 20px 24px;
-  border-radius: 8px;
-  border: 1px solid #E6E8EA;
-  background: #FFFFFF;
-  position: relative;
-  overflow: hidden;
-}
-
-#wechat-preview .callout::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: #F0B90B;
-}
-
-#wechat-preview .callout-title {
-  font-weight: bold;
-  margin-bottom: 12px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  color: #1E2026;
-  font-size: 16px;
-}
-
-#wechat-preview .callout-icon {
-  font-size: 20px;
-  color: #F0B90B;
-}
-`
+export function styleDeclarationToString(style: StyleDeclaration | undefined): string {
+  if (!style) return '';
+
+  return Object.entries(style)
+    .filter(([, value]) => `${value}`.trim().length > 0)
+    .map(([property, value]) => `${property}: ${value};`)
+    .join(' ');
+}
+
+export function mergeStyleDeclarations(...styles: Array<StyleDeclaration | undefined>): StyleDeclaration {
+  return styles.reduce<StyleDeclaration>((acc, style) => {
+    if (!style) return acc;
+    for (const [property, value] of Object.entries(style)) {
+      if (`${value}`.trim().length === 0) {
+        delete acc[property];
+      } else {
+        acc[property] = value;
+      }
+    }
+    return acc;
+  }, {});
+}
+
+export function buildTemplateStyleMap(template: TemplateDefinition): Record<string, StyleDeclaration> {
+  const mergedSelectors: Record<string, StyleDeclaration> = {};
+  const selectorNames = new Set([
+    ...Object.keys(template.selectorStyles || {}),
+    ...Object.keys(template.advancedStyles || {}),
+  ]);
+
+  for (const selector of selectorNames) {
+    const mergedStyle = mergeStyleDeclarations(
+      template.selectorStyles[selector],
+      template.advancedStyles[selector]
+    );
+
+    if (
+      ['u', 'a'].includes(selector) &&
+      (mergedStyle['text-decoration-style'] ||
+        mergedStyle['text-decoration-color'] ||
+        mergedStyle['text-underline-offset'])
+    ) {
+      const textDecoration = mergedStyle['text-decoration'] || '';
+      const hasLine = Boolean(mergedStyle['text-decoration-line']);
+
+      if (!hasLine && textDecoration && textDecoration !== 'none') {
+        mergedStyle['text-decoration-line'] = textDecoration;
+      }
+
+      if (selector === 'u' && !mergedStyle['text-decoration-line']) {
+        mergedStyle['text-decoration-line'] = 'underline';
+      }
+
+      delete mergedStyle['text-decoration'];
+    }
+
+    mergedSelectors[selector] = mergedStyle;
   }
-];
+  return mergedSelectors;
+}
+
+export function templateToCss(template: TemplateDefinition): string {
+  const styleMap = buildTemplateStyleMap(template);
+  let css = '';
+
+  for (const [selector, styles] of Object.entries(styleMap)) {
+    const styleString = styleDeclarationToString(styles);
+    if (styleString) {
+      const cssSelector = selector === 'container' ? '#wechat-preview' : `#wechat-preview ${selector}`;
+      css += `${cssSelector} { ${styleString} }\n`;
+    }
+  }
+
+  return css;
+}
+
+const templateModules = import.meta.glob('../themes/seed/*.json', {
+  eager: true,
+  import: 'default',
+}) as Record<string, TemplateDefinition>;
+
+export function getBundledTemplates(): TemplateDefinition[] {
+  return Object.values(templateModules).sort((left, right) => {
+    if (left.id === 'default') return -1;
+    if (right.id === 'default') return 1;
+    if (left.id === 'claudius') return -1;
+    if (right.id === 'claudius') return 1;
+    return left.name.localeCompare(right.name);
+  });
+}
+
+export function getBuiltInThemesFromJson(): Theme[] {
+  const templates = getBundledTemplates();
+  return templates.map(template => ({
+    id: template.id,
+    name: template.name,
+    description: template.description,
+    css: templateToCss(template),
+    isCustom: false
+  }));
+}
+
+export function exportThemeToJson(theme: Theme, template?: TemplateDefinition): TemplateDefinition {
+  if (template) {
+    return template;
+  }
+  
+  return {
+    id: theme.id,
+    name: theme.name,
+    description: theme.description,
+    meta: {
+      version: 1,
+      group: 'Custom',
+      icon: null,
+      source: 'custom',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    globalStyles: {
+      page: {},
+      body: {},
+      paragraph: {},
+      headings: { h1: {}, h2: {}, h3: {}, h4: {} }
+    },
+    selectorStyles: {},
+    advancedStyles: {}
+  };
+}
+
+export const builtInThemes: Theme[] = getBuiltInThemesFromJson();
 
 export function loadCustomThemes(): Theme[] {
   try {
@@ -2169,4 +351,34 @@ export function saveCustomThemes(themes: Theme[]) {
   } catch (e) {
     console.error('Failed to save custom themes:', e);
   }
+}
+
+export function downloadTheme(theme: Theme, template?: TemplateDefinition) {
+  const jsonData = exportThemeToJson(theme, template);
+  const blob = new Blob([JSON.stringify(jsonData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `${theme.id}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+export function uploadTheme(file: File): Promise<TemplateDefinition> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const template = JSON.parse(content);
+        resolve(template);
+      } catch (err) {
+        reject(new Error('无效的主题文件格式'));
+      }
+    };
+    reader.onerror = () => reject(new Error('文件读取失败'));
+    reader.readAsText(file);
+  });
 }

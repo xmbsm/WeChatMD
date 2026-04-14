@@ -1,0 +1,243 @@
+{
+  "id": "aurora",
+  "name": "极光玻璃",
+  "description": "现代化玻璃态设计",
+  "meta": {
+    "version": 1,
+    "group": "现代",
+    "icon": null,
+    "source": "seed",
+    "createdAt": "2026-04-14T00:00:00.000Z",
+    "updatedAt": "2026-04-14T00:00:00.000Z"
+  },
+  "globalStyles": {
+    "page": {
+      "background-color": "#ffffff",
+      "max-width": "100%",
+      "padding": "0 8px",
+      "margin": "0 auto",
+      "word-wrap": "break-word"
+    },
+    "body": {
+      "font-family": "PingFang SC, Microsoft YaHei, sans-serif",
+      "font-size": "16px",
+      "line-height": "1.7",
+      "color": "#2d3748"
+    },
+    "paragraph": {
+      "margin": "12px 0",
+      "line-height": "1.8",
+      "color": "#2d3748"
+    },
+    "headings": {
+      "h1": {
+        "font-size": "32px",
+        "font-weight": "bold",
+        "line-height": "1.2",
+        "color": "white",
+        "margin": "32px 0",
+        "padding": "24px",
+        "border-radius": "16px",
+        "text-align": "center"
+      },
+      "h2": {
+        "font-size": "24px",
+        "font-weight": "bold",
+        "line-height": "1.2",
+        "color": "#1a1a2e",
+        "margin": "28px 0 16px 0",
+        "padding": "16px 20px",
+        "border-radius": "12px",
+        "border-left": "4px solid #667eea"
+      },
+      "h3": {
+        "font-size": "20px",
+        "font-weight": "bold",
+        "line-height": "1.2",
+        "color": "#667eea",
+        "margin": "24px 0 12px 0",
+        "padding-left": "16px",
+        "border-left": "4px solid #764ba2"
+      }
+    }
+  },
+  "selectorStyles": {
+    "container": {
+      "max-width": "100%",
+      "margin": "0 auto",
+      "padding": "0 8px",
+      "font-family": "PingFang SC, Microsoft YaHei, sans-serif",
+      "font-size": "16px",
+      "line-height": "1.7",
+      "color": "#2d3748",
+      "background-color": "#ffffff",
+      "word-wrap": "break-word"
+    },
+    "h1": {
+      "font-size": "32px",
+      "font-weight": "bold",
+      "text-align": "center",
+      "margin": "32px 0",
+      "padding": "24px",
+      "background": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      "border-radius": "16px",
+      "color": "white"
+    },
+    "h2": {
+      "font-size": "24px",
+      "font-weight": "bold",
+      "margin": "28px 0 16px 0",
+      "padding": "16px 20px",
+      "background": "#f0f0ff",
+      "border-left": "4px solid #667eea",
+      "border-radius": "12px",
+      "color": "#1a1a2e"
+    },
+    "h3": {
+      "font-size": "20px",
+      "font-weight": "bold",
+      "margin": "24px 0 12px 0",
+      "color": "#667eea",
+      "padding-left": "16px",
+      "border-left": "4px solid #764ba2"
+    },
+    "p": {
+      "font-size": "16px",
+      "line-height": "1.8",
+      "color": "#2d3748",
+      "margin": "12px 0",
+      "padding": "12px 16px",
+      "background": "#f8f9ff",
+      "border-radius": "12px",
+      "border": "1px solid #e6e8ff"
+    },
+    "strong": {
+      "font-weight": "bold",
+      "color": "#667eea"
+    },
+    "em": {
+      "font-style": "italic",
+      "color": "#764ba2"
+    },
+    "u": {
+      "text-decoration": "underline",
+      "text-decoration-color": "#667eea"
+    },
+    "a": {
+      "color": "#667eea",
+      "text-decoration": "none",
+      "font-weight": "600",
+      "padding": "2px 6px",
+      "border-radius": "4px",
+      "background": "#f0f0ff"
+    },
+    "ul": {
+      "padding-left": "28px",
+      "margin": "16px 0"
+    },
+    "ol": {
+      "padding-left": "28px",
+      "margin": "16px 0"
+    },
+    "li": {
+      "padding": "8px 0",
+      "color": "#2d3748"
+    },
+    "blockquote": {
+      "margin": "20px 0",
+      "padding": "20px 24px",
+      "background": "#f0f0ff",
+      "border-left": "4px solid #667eea",
+      "border-radius": "16px",
+      "color": "#4a5568"
+    },
+    "code": {
+      "font-family": "monospace",
+      "font-size": "14px",
+      "padding": "4px 10px",
+      "border-radius": "8px",
+      "background": "#667eea",
+      "color": "white",
+      "font-weight": "500"
+    },
+    "pre": {
+      "background": "#1a1a2e",
+      "padding": "24px",
+      "border-radius": "16px",
+      "font-size": "14px",
+      "border": "1px solid #333"
+    },
+    "hr": {
+      "border": "none",
+      "height": "4px",
+      "background": "#667eea",
+      "border-radius": "2px",
+      "margin": "32px 0"
+    },
+    "img": {
+      "max-width": "100%",
+      "border-radius": "16px",
+      "margin": "20px 0",
+      "border": "4px solid #f0f0ff"
+    },
+    "table": {
+      "width": "100%",
+      "border-collapse": "collapse",
+      "margin": "24px 0",
+      "border-radius": "16px",
+      "overflow": "hidden",
+      "border": "1px solid #e6e8ff"
+    },
+    "th": {
+      "background": "#667eea",
+      "color": "white",
+      "font-weight": "bold",
+      "padding": "16px",
+      "border": "none"
+    },
+    "td": {
+      "padding": "14px 16px",
+      "border": "1px solid #e6e8ff",
+      "background": "#ffffff",
+      "color": "#2d3748"
+    },
+    "tr": {
+      "border": "none"
+    }
+  },
+  "advancedStyles": {
+    "h1": {
+      "background": "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+      "border-radius": "16px"
+    },
+    "h2": {
+      "background": "#f0f0ff",
+      "border-radius": "12px"
+    },
+    "p": {
+      "background": "#f8f9ff",
+      "border-radius": "12px",
+      "border": "1px solid #e6e8ff"
+    },
+    "blockquote": {
+      "background": "#f0f0ff",
+      "border-radius": "16px"
+    },
+    "code": {
+      "background": "#667eea",
+      "border-radius": "8px"
+    },
+    "pre": {
+      "background": "#1a1a2e",
+      "border-radius": "16px"
+    },
+    "img": {
+      "border-radius": "16px",
+      "border": "4px solid #f0f0ff"
+    },
+    "table": {
+      "border-radius": "16px",
+      "overflow": "hidden"
+    }
+  }
+}

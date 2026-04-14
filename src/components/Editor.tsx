@@ -5,19 +5,16 @@ interface EditorProps {
   content: string;
   onChange: (value: string) => void;
   isDark: boolean;
+  editorScrollRef: React.RefObject<HTMLTextAreaElement>;
   onScroll?: () => void;
   scrollSyncEnabled?: boolean;
 }
 
 export interface EditorRef {
-  scrollTop: number;
-  scrollHeight: number;
-  clientHeight: number;
   setSelection: (start: number, end: number) => void;
 }
 
-export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, isDark, onScroll, scrollSyncEnabled = false }, ref) => {
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, isDark, editorScrollRef, onScroll, scrollSyncEnabled = false }, ref) => {
   const [showMermaidMenu, setShowMermaidMenu] = useState(false);
   const [showTableMenu, setShowTableMenu] = useState(false);
   const [showIconMenu, setShowIconMenu] = useState(false);
@@ -28,19 +25,18 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
   
   // 插入 Markdown 语法
   const insertMarkdown = (before: string, after: string = before) => {
-    if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
+    if (editorScrollRef.current) {
+      const start = editorScrollRef.current.selectionStart;
+      const end = editorScrollRef.current.selectionEnd;
       const selectedText = content.substring(start, end);
       const newContent = content.substring(0, start) + before + selectedText + after + content.substring(end);
       onChange(newContent);
       
-      // 聚焦并设置光标位置
       setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.focus();
+        if (editorScrollRef.current) {
+          editorScrollRef.current.focus();
           const newPosition = start + before.length + selectedText.length;
-          textareaRef.current.setSelectionRange(newPosition, newPosition);
+          editorScrollRef.current.setSelectionRange(newPosition, newPosition);
         }
       }, 0);
     }
@@ -48,9 +44,9 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
   
   // 插入链接
   const insertLink = () => {
-    if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
+    if (editorScrollRef.current) {
+      const start = editorScrollRef.current.selectionStart;
+      const end = editorScrollRef.current.selectionEnd;
       const selectedText = content.substring(start, end) || '链接文本';
       const linkUrl = prompt('请输入链接地址:', 'https://');
       
@@ -58,12 +54,11 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
         const newContent = content.substring(0, start) + `[${selectedText}](${linkUrl})` + content.substring(end);
         onChange(newContent);
         
-        // 聚焦并设置光标位置
         setTimeout(() => {
-          if (textareaRef.current) {
-            textareaRef.current.focus();
+          if (editorScrollRef.current) {
+            editorScrollRef.current.focus();
             const newPosition = start + `[${selectedText}](${linkUrl})`.length;
-            textareaRef.current.setSelectionRange(newPosition, newPosition);
+            editorScrollRef.current.setSelectionRange(newPosition, newPosition);
           }
         }, 0);
       }
@@ -72,9 +67,9 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
   
   // 插入图片
   const insertImage = () => {
-    if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
+    if (editorScrollRef.current) {
+      const start = editorScrollRef.current.selectionStart;
+      const end = editorScrollRef.current.selectionEnd;
       const altText = content.substring(start, end) || '图片描述';
       const imageUrl = prompt('请输入图片地址:', 'https://');
       
@@ -82,12 +77,11 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
         const newContent = content.substring(0, start) + `![${altText}](${imageUrl})` + content.substring(end);
         onChange(newContent);
         
-        // 聚焦并设置光标位置
         setTimeout(() => {
-          if (textareaRef.current) {
-            textareaRef.current.focus();
+          if (editorScrollRef.current) {
+            editorScrollRef.current.focus();
             const newPosition = start + `![${altText}](${imageUrl})`.length;
-            textareaRef.current.setSelectionRange(newPosition, newPosition);
+            editorScrollRef.current.setSelectionRange(newPosition, newPosition);
           }
         }, 0);
       }
@@ -96,19 +90,18 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
   
   // 插入代码块
   const insertCodeBlock = () => {
-    if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
+    if (editorScrollRef.current) {
+      const start = editorScrollRef.current.selectionStart;
+      const end = editorScrollRef.current.selectionEnd;
       const selectedText = content.substring(start, end);
       const newContent = content.substring(0, start) + '```\n' + selectedText + '\n```' + content.substring(end);
       onChange(newContent);
       
-      // 聚焦并设置光标位置
       setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.focus();
-          const newPosition = start + 4; // 跳过 ```\n
-          textareaRef.current.setSelectionRange(newPosition, newPosition + selectedText.length);
+        if (editorScrollRef.current) {
+          editorScrollRef.current.focus();
+          const newPosition = start + 4;
+          editorScrollRef.current.setSelectionRange(newPosition, newPosition + selectedText.length);
         }
       }, 0);
     }
@@ -116,9 +109,9 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
   
   // 插入 Mermaid 图表
   const insertMermaid = (type: string) => {
-    if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
+    if (editorScrollRef.current) {
+      const start = editorScrollRef.current.selectionStart;
+      const end = editorScrollRef.current.selectionEnd;
       
       let mermaidCode = '';
       switch (type) {
@@ -153,64 +146,32 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
       const newContent = content.substring(0, start) + '```mermaid\n' + mermaidCode + '\n```' + content.substring(end);
       onChange(newContent);
       
-      // 聚焦并设置光标位置
       setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.focus();
-          const newPosition = start + 11; // 跳过 ```mermaid\n
-          textareaRef.current.setSelectionRange(newPosition, newPosition + mermaidCode.length);
+        if (editorScrollRef.current) {
+          editorScrollRef.current.focus();
+          const newPosition = start + 11;
+          editorScrollRef.current.setSelectionRange(newPosition, newPosition + mermaidCode.length);
         }
       }, 0);
     }
   };
 
   useImperativeHandle(ref, () => ({
-    get scrollTop() {
-      return textareaRef.current?.scrollTop || 0;
-    },
-    set scrollTop(value: number) {
-      if (textareaRef.current) {
-        textareaRef.current.scrollTop = value;
-      }
-    },
-    get scrollHeight() {
-      return textareaRef.current?.scrollHeight || 0;
-    },
-    get clientHeight() {
-      return textareaRef.current?.clientHeight || 0;
-    },
     setSelection: (start: number, end: number) => {
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-        textareaRef.current.setSelectionRange(start, end);
+      console.log('Editor.setSelection called:', start, end);
+      console.log('editorScrollRef.current:', !!editorScrollRef.current);
+      if (editorScrollRef.current) {
+        console.log('Focusing and setting selection');
+        editorScrollRef.current.focus();
+        editorScrollRef.current.setSelectionRange(start, end);
+        console.log('Selection set successfully');
       }
     }
   }));
 
-  // 使用useEffect添加滚动监听器
-  useEffect(() => {
-    // 直接在textarea元素上添加滚动事件监听器
-    const handleScroll = () => {
-      if (scrollSyncEnabled && onScroll) {
-        onScroll();
-      }
-    };
-    
-    // 查找textarea元素
-    const textarea = document.querySelector('textarea');
-    if (textarea) {
-      textarea.addEventListener('scroll', handleScroll);
-      
-      return () => {
-        textarea.removeEventListener('scroll', handleScroll);
-      };
-    }
-  }, [scrollSyncEnabled, onScroll]);
-
   const handlePaste = (e: React.ClipboardEvent) => {
     const clipboardData = e.clipboardData || (window as any).clipboardData;
     
-    // 检查是否有图片
     const items = clipboardData?.items;
     if (items) {
       for (let i = 0; i < items.length; i++) {
@@ -225,34 +186,29 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
       }
     }
 
-    // 检查是否有富文本
     const html = clipboardData?.getData('text/html');
     if (html) {
       e.preventDefault();
       handleRichTextPaste(html);
       return;
     }
-
-    // 普通文本直接粘贴
   };
 
   const handleImagePaste = (file: File) => {
-    // 创建图片URL
     const reader = new FileReader();
     reader.onload = (e) => {
       const imageUrl = e.target?.result as string;
-      if (imageUrl && textareaRef.current) {
-        const start = textareaRef.current.selectionStart;
-        const end = textareaRef.current.selectionEnd;
+      if (imageUrl && editorScrollRef.current) {
+        const start = editorScrollRef.current.selectionStart;
+        const end = editorScrollRef.current.selectionEnd;
         const newContent = content.substring(0, start) + `![Image](${imageUrl})` + content.substring(end);
         onChange(newContent);
         
-        // 聚焦并设置光标位置
         setTimeout(() => {
-          if (textareaRef.current) {
-            textareaRef.current.focus();
+          if (editorScrollRef.current) {
+            editorScrollRef.current.focus();
             const newPosition = start + `![Image](${imageUrl})`.length;
-            textareaRef.current.setSelectionRange(newPosition, newPosition);
+            editorScrollRef.current.setSelectionRange(newPosition, newPosition);
           }
         }, 0);
       }
@@ -261,25 +217,22 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
   };
 
   const handleRichTextPaste = (html: string) => {
-    // 创建临时DOM元素来解析HTML
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
 
-    // 清洗和转换为Markdown
     const markdown = convertHtmlToMarkdown(tempDiv);
     
-    if (textareaRef.current) {
-      const start = textareaRef.current.selectionStart;
-      const end = textareaRef.current.selectionEnd;
+    if (editorScrollRef.current) {
+      const start = editorScrollRef.current.selectionStart;
+      const end = editorScrollRef.current.selectionEnd;
       const newContent = content.substring(0, start) + markdown + content.substring(end);
       onChange(newContent);
       
-      // 聚焦并设置光标位置
       setTimeout(() => {
-        if (textareaRef.current) {
-          textareaRef.current.focus();
+        if (editorScrollRef.current) {
+          editorScrollRef.current.focus();
           const newPosition = start + markdown.length;
-          textareaRef.current.setSelectionRange(newPosition, newPosition);
+          editorScrollRef.current.setSelectionRange(newPosition, newPosition);
         }
       }, 0);
     }
@@ -288,7 +241,6 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
   const convertHtmlToMarkdown = (element: HTMLElement): string => {
     let markdown = '';
     
-    // 处理子元素
     Array.from(element.children).forEach((child) => {
       if (child instanceof HTMLElement) {
         switch (child.tagName.toLowerCase()) {
@@ -340,14 +292,12 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
             }
             break;
           default:
-            // 处理其他元素
             markdown += processInlineElements(child);
             break;
         }
       }
     });
     
-    // 处理纯文本节点
     if (!element.children.length && element.textContent) {
       markdown += element.textContent.trim() + '\n\n';
     }
@@ -402,7 +352,6 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
       const itemContent = processInlineElements(item as HTMLElement);
       markdown += `${bulletText}${itemContent.trim()}\n`;
       
-      // 处理嵌套列表
       const nestedLists = item.querySelectorAll('ul, ol');
       nestedLists.forEach((nestedList) => {
         const nestedBullet = nestedList.tagName.toLowerCase() === 'ul' ? '  - ' : (i: number) => `  ${i + 1}. `;
@@ -414,20 +363,6 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
     return markdown;
   };
 
-  // 暴露setSelection方法到window对象，供Preview组件使用
-  useEffect(() => {
-    (window as any).__editorSetSelection = (start: number, end: number) => {
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-        textareaRef.current.setSelectionRange(start, end);
-      }
-    };
-    return () => {
-      delete (window as any).__editorSetSelection;
-    };
-  }, []);
-
-  // 模拟实时保存
   useEffect(() => {
     setLastSaved(new Date());
   }, [content]);
@@ -446,7 +381,6 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
         Markdown 编辑区
       </div>
       
-      {/* 编辑工具栏 */}
       <div className={clsx(
         "flex items-center px-4 py-2 border-b",
         isDark 
@@ -858,24 +792,23 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
       </div>
       
       <textarea
-        ref={textareaRef}
+        ref={editorScrollRef}
         value={content}
         onChange={(e) => {
           setIsEditing(true);
           onChange(e.target.value);
           
-          // 清除之前的超时
           if (saveTimeoutRef.current) {
             clearTimeout(saveTimeoutRef.current);
           }
           
-          // 300毫秒后模拟保存完成
           saveTimeoutRef.current = setTimeout(() => {
             setIsEditing(false);
             setLastSaved(new Date());
           }, 300);
         }}
         onPaste={handlePaste}
+        onScroll={scrollSyncEnabled ? onScroll : undefined}
         className={clsx(
           "flex-1 w-full p-4 resize-none outline-none leading-relaxed",
           isDark 
@@ -892,7 +825,6 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
         spellCheck={false}
       />
       
-      {/* 行数、字数和保存状态显示 */}
       <div className={clsx(
         "px-4 py-2 text-xs flex justify-between items-center",
         isDark 
@@ -912,8 +844,6 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
           {isEditing ? '编辑中' : (lastSaved ? '已保存' : '未保存')}
         </div>
       </div>
-      
-      {/* 使用内联样式代替动画，避免语法错误 */}
     </div>
   );
 });
