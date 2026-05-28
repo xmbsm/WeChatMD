@@ -1,6 +1,7 @@
 import { clsx } from 'clsx';
 import { useRef, forwardRef, useImperativeHandle, useEffect, useState } from 'react';
 import mermaid from 'mermaid';
+import Darkmode from 'mp-darkmode';
 import { useSettingsStore } from '../store/settingsStore';
 
 interface PreviewProps {
@@ -9,21 +10,266 @@ interface PreviewProps {
   themeCss?: string;
   markdownContent?: string;
   previewScrollRef: React.RefObject<HTMLDivElement>;
-  onScroll?: () => void;
-  scrollSyncEnabled?: boolean;
   onSelectContent?: (start: number, end: number) => void;
 }
 
 export interface PreviewRef {
 }
 
-export const Preview = forwardRef<PreviewRef, PreviewProps>(({ html, isDark, themeCss, markdownContent, previewScrollRef, onScroll, scrollSyncEnabled = false, onSelectContent }, ref) => {
+let darkmodeConfigured = false;
+
+const DARK_MODE_CSS = `
+  #wechat-preview {
+    background-color: #191919 !important;
+    color: #a3a3a3 !important;
+  }
+  #wechat-preview p,
+  #wechat-preview h1,
+  #wechat-preview h2,
+  #wechat-preview h3,
+  #wechat-preview h4,
+  #wechat-preview h5,
+  #wechat-preview h6,
+  #wechat-preview li,
+  #wechat-preview td,
+  #wechat-preview th,
+  #wechat-preview span,
+  #wechat-preview div,
+  #wechat-preview strong,
+  #wechat-preview em,
+  #wechat-preview del {
+    color: #a3a3a3 !important;
+  }
+  #wechat-preview a {
+    color: #576b95 !important;
+  }
+  #wechat-preview pre {
+    background-color: #2d2d2d !important;
+    border-color: #3a3a3a !important;
+    color: #a3a3a3 !important;
+  }
+  #wechat-preview pre code {
+    background-color: transparent !important;
+    color: #a3a3a3 !important;
+  }
+  #wechat-preview code {
+    background-color: #2d2d2d !important;
+    color: #a3a3a3 !important;
+    border-color: #3a3a3a !important;
+  }
+  #wechat-preview blockquote {
+    background-color: #2d2d2d !important;
+    border-left-color: #5aaa7a !important;
+    color: #a3a3a3 !important;
+  }
+  #wechat-preview blockquote p {
+    color: #a3a3a3 !important;
+  }
+  #wechat-preview table {
+    border-color: #3a3a3a !important;
+  }
+  #wechat-preview th,
+  #wechat-preview td {
+    border-color: #3a3a3a !important;
+    color: #a3a3a3 !important;
+  }
+  #wechat-preview hr {
+    border-color: #3a3a3a !important;
+  }
+  #wechat-preview img {
+    opacity: 0.92;
+  }
+`;
+
+const DARK_HLJS_CSS = `
+  #wechat-preview .hljs-keyword,
+  #wechat-preview .hljs-selector-tag,
+  #wechat-preview .hljs-literal {
+    color: #5aaa7a !important;
+  }
+  #wechat-preview .hljs-title,
+  #wechat-preview .hljs-title.function_ {
+    color: #6db88a !important;
+  }
+  #wechat-preview .hljs-string,
+  #wechat-preview .hljs-regexp,
+  #wechat-preview .hljs-addition {
+    color: #7ac49a !important;
+  }
+  #wechat-preview .hljs-number,
+  #wechat-preview .hljs-built_in {
+    color: #5a9a7a !important;
+  }
+  #wechat-preview .hljs-comment,
+  #wechat-preview .hljs-quote {
+    color: #4a8a6a !important;
+    font-style: italic !important;
+  }
+  #wechat-preview .hljs-variable,
+  #wechat-preview .hljs-template-variable {
+    color: #5aaa7a !important;
+  }
+  #wechat-preview .hljs-attr,
+  #wechat-preview .hljs-attribute {
+    color: #5a9a7a !important;
+  }
+  #wechat-preview .hljs-type,
+  #wechat-preview .hljs-class .hljs-title {
+    color: #6db88a !important;
+  }
+  #wechat-preview .hljs-symbol,
+  #wechat-preview .hljs-bullet {
+    color: #7ac49a !important;
+  }
+  #wechat-preview .hljs-meta {
+    color: #5aaa7a !important;
+  }
+  #wechat-preview .hljs-deletion {
+    color: #e06c75 !important;
+  }
+  #wechat-preview pre code.hljs {
+    background: transparent !important;
+  }
+`;
+
+const LIGHT_HLJS_CSS = `
+  #wechat-preview pre code.hljs {
+    background: transparent;
+  }
+  #wechat-preview .hljs-keyword,
+  #wechat-preview .hljs-selector-tag,
+  #wechat-preview .hljs-literal {
+    color: #0d7a3e;
+  }
+  #wechat-preview .hljs-title,
+  #wechat-preview .hljs-title.function_ {
+    color: #068a4a;
+  }
+  #wechat-preview .hljs-string,
+  #wechat-preview .hljs-regexp,
+  #wechat-preview .hljs-addition {
+    color: #1a9f5c;
+  }
+  #wechat-preview .hljs-number,
+  #wechat-preview .hljs-built_in {
+    color: #2d8659;
+  }
+  #wechat-preview .hljs-comment,
+  #wechat-preview .hljs-quote {
+    color: #6db88a;
+    font-style: italic;
+  }
+  #wechat-preview .hljs-variable,
+  #wechat-preview .hljs-template-variable {
+    color: #1a7a4a;
+  }
+  #wechat-preview .hljs-attr,
+  #wechat-preview .hljs-attribute {
+    color: #2d8659;
+  }
+  #wechat-preview .hljs-type,
+  #wechat-preview .hljs-class .hljs-title {
+    color: #0a6e36;
+  }
+  #wechat-preview .hljs-symbol,
+  #wechat-preview .hljs-bullet {
+    color: #39d98a;
+  }
+  #wechat-preview .hljs-meta {
+    color: #5aaa7a;
+  }
+  #wechat-preview .hljs-deletion {
+    color: #c0392b;
+  }
+`;
+
+export const Preview = forwardRef<PreviewRef, PreviewProps>(({ html, isDark, themeCss, markdownContent, previewScrollRef, onSelectContent }, ref) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
+  const isDarkRef = useRef(isDark);
+  isDarkRef.current = isDark;
   
   const { fontSettings } = useSettingsStore();
 
   useImperativeHandle(ref, () => ({}));
+
+  const resetDarkModeInlineStyles = () => {
+    if (!contentRef.current) return;
+    const elements = contentRef.current.querySelectorAll('*');
+    elements.forEach(el => {
+      const htmlEl = el as HTMLElement;
+      htmlEl.style.removeProperty('color');
+      htmlEl.style.removeProperty('background-color');
+      htmlEl.style.removeProperty('border-left-color');
+      htmlEl.style.removeProperty('border-right-color');
+      htmlEl.style.removeProperty('border-top-color');
+      htmlEl.style.removeProperty('border-bottom-color');
+      htmlEl.style.removeProperty('text-shadow');
+      htmlEl.style.removeProperty('box-shadow');
+    });
+  };
+
+  const materializeComputedStyles = () => {
+    if (!contentRef.current) return;
+    const elements = contentRef.current.querySelectorAll('*');
+    elements.forEach(el => {
+      const htmlEl = el as HTMLElement;
+      const computed = window.getComputedStyle(htmlEl);
+
+      if (computed.color && computed.color !== 'rgba(0, 0, 0, 0)') {
+        htmlEl.style.color = computed.color;
+      }
+      if (computed.backgroundColor &&
+          computed.backgroundColor !== 'rgba(0, 0, 0, 0)' &&
+          computed.backgroundColor !== 'transparent') {
+        htmlEl.style.backgroundColor = computed.backgroundColor;
+      }
+      const borderColors = [
+        { prop: 'borderLeftColor' as const, value: computed.borderLeftColor },
+        { prop: 'borderRightColor' as const, value: computed.borderRightColor },
+        { prop: 'borderTopColor' as const, value: computed.borderTopColor },
+        { prop: 'borderBottomColor' as const, value: computed.borderBottomColor },
+      ];
+      borderColors.forEach(({ prop, value }) => {
+        if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'rgb(0, 0, 0)') {
+          (htmlEl.style as unknown as Record<string, string>)[prop] = value;
+        }
+      });
+    });
+  };
+
+  const applyDarkMode = () => {
+    if (!contentRef.current || !isDarkRef.current) return;
+
+    resetDarkModeInlineStyles();
+
+    requestAnimationFrame(() => {
+      if (!contentRef.current || !isDarkRef.current) return;
+
+      materializeComputedStyles();
+
+      try {
+        const nodes = contentRef.current.querySelectorAll('*');
+        if (!darkmodeConfigured) {
+          Darkmode.run(nodes, {
+            mode: 'dark',
+            defaultLightTextColor: '#191919',
+            defaultLightBgColor: '#ffffff',
+            defaultDarkTextColor: '#a3a3a3',
+            defaultDarkBgColor: '#191919',
+            error: (err: Error) => {
+              console.error('Darkmode error:', err);
+            }
+          });
+          darkmodeConfigured = true;
+        } else {
+          Darkmode.run(nodes, { mode: 'dark' });
+        }
+      } catch (e) {
+        console.error('Failed to apply mp-darkmode:', e);
+      }
+    });
+  };
 
   useEffect(() => {
     mermaid.initialize({
@@ -51,87 +297,27 @@ export const Preview = forwardRef<PreviewRef, PreviewProps>(({ html, isDark, the
     
     const renderMermaid = () => {
       if (contentRef.current) {
-        mermaid.run({
-          nodes: contentRef.current.querySelectorAll('.mermaid')
-        });
-      }
-    };
-    
-    const applyDarkModeStyles = () => {
-      if (contentRef.current) {
-        const elements = contentRef.current.querySelectorAll('*');
-        elements.forEach(element => {
-          const el = element as HTMLElement;
-          
-          if (isDark) {
-            if (el.tagName === 'P' || el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'H3' ||
-                el.tagName === 'H4' || el.tagName === 'H5' || el.tagName === 'H6' || el.tagName === 'LI') {
-              el.style.color = '#e5e7eb';
-            }
-            
-            if (el.tagName === 'A') {
-              el.style.color = '#3b82f6';
-            }
-            
-            if (el.tagName === 'PRE' || el.classList.contains('code')) {
-              el.style.backgroundColor = '#1e293b';
-              el.style.color = '#e5e7eb';
-              el.style.borderColor = '#334155';
-            }
-            
-            if (el.tagName === 'BLOCKQUOTE') {
-              el.style.backgroundColor = '#1e293b';
-              el.style.borderLeftColor = '#3b82f6';
-              el.style.color = '#e5e7eb';
-            }
-            
-            if (el.tagName === 'TABLE') {
-              el.style.borderColor = '#334155';
-            }
-            if (el.tagName === 'TH' || el.tagName === 'TD') {
-              el.style.borderColor = '#334155';
-              el.style.color = '#e5e7eb';
-            }
-          } else {
-            if (el.tagName === 'P' || el.tagName === 'H1' || el.tagName === 'H2' || el.tagName === 'H3' ||
-                el.tagName === 'H4' || el.tagName === 'H5' || el.tagName === 'H6' || el.tagName === 'LI') {
-              el.style.color = '';
-            }
-            
-            if (el.tagName === 'A') {
-              el.style.color = '';
-            }
-            
-            if (el.tagName === 'PRE' || el.classList.contains('code')) {
-              el.style.backgroundColor = '';
-              el.style.color = '';
-              el.style.borderColor = '';
-            }
-            
-            if (el.tagName === 'BLOCKQUOTE') {
-              el.style.backgroundColor = '';
-              el.style.borderLeftColor = '';
-              el.style.color = '';
-            }
-            
-            if (el.tagName === 'TABLE') {
-              el.style.borderColor = '';
-            }
-            if (el.tagName === 'TH' || el.tagName === 'TD') {
-              el.style.borderColor = '';
-              el.style.color = '';
-            }
-          }
-        });
+        try {
+          mermaid.run({
+            nodes: contentRef.current.querySelectorAll('.mermaid')
+          });
+        } catch (e) {}
       }
     };
     
     renderMermaid();
-    applyDarkModeStyles();
+
+    if (isDark) {
+      applyDarkMode();
+    } else {
+      resetDarkModeInlineStyles();
+    }
     
     const observer = new MutationObserver(() => {
       renderMermaid();
-      applyDarkModeStyles();
+      if (isDarkRef.current) {
+        applyDarkMode();
+      }
     });
     if (contentRef.current) {
       observer.observe(contentRef.current, {
@@ -143,93 +329,72 @@ export const Preview = forwardRef<PreviewRef, PreviewProps>(({ html, isDark, the
     return () => {
       observer.disconnect();
     };
-  }, [isDark, fontSettings]);
+  }, [isDark, fontSettings, html, themeCss]);
 
   useEffect(() => {
     if (!onSelectContent || !contentRef.current) return;
     
     const handleClick = (e: MouseEvent) => {
-      console.log('=== Preview clicked ===');
-      
       const target = e.target as HTMLElement;
-      
-      if (!markdownContent) {
-        console.warn('markdownContent is missing');
-        return;
-      }
-      
-      const handleElementClick = (element: HTMLElement): boolean => {
-        if (element.tagName === 'IMG') {
-          const src = element.getAttribute('src');
-          if (src) {
-            const regex = /!\[.*?\]\((.*?)\)/g;
-            let match;
-            while ((match = regex.exec(markdownContent)) !== null) {
-              if (match[1] === src) {
-                const start = match.index;
-                const end = start + match[0].length;
-                onSelectContent(start, end);
-                console.log('Selected image:', start, end, match[0]);
-                return true;
-              }
-            }
-            
-            if (src.startsWith('data:image/')) {
-              const base64Prefix = src.substring(0, 50);
-              const regex = /!\[.*?\]\((data:image\/.*?)\)/g;
-              let match;
-              while ((match = regex.exec(markdownContent)) !== null) {
-                if (match[1].startsWith(base64Prefix)) {
-                  const start = match.index;
-                  const end = start + match[0].length;
-                  onSelectContent(start, end);
-                  console.log('Selected base64 image:', start, end, match[0]);
-                  return true;
-                }
-              }
-            }
-          }
-          return false;
-        }
-        
-        const text = element.textContent || '';
-        const trimmedText = text.trim();
-        
-        if (!trimmedText) return false;
-        
-        const searchText = trimmedText.substring(0, 30);
-        const index = markdownContent.indexOf(searchText);
-        
-        if (index !== -1) {
-          let start = index;
-          let end = index + searchText.length;
-          
-          const nextLineBreak = markdownContent.indexOf('\n', end);
-          if (nextLineBreak !== -1) {
-            end = nextLineBreak;
-          } else {
-            end = markdownContent.length;
-          }
-          
-          const prevLineBreak = markdownContent.lastIndexOf('\n', start);
-          if (prevLineBreak !== -1) {
-            start = prevLineBreak + 1;
-          } else {
-            start = 0;
-          }
-          
-          onSelectContent(start, end);
-          console.log('Selected content:', start, end, markdownContent.substring(start, end));
-          return true;
-        }
-        
-        return false;
-      };
+      if (!markdownContent) return;
 
       let currentElement: HTMLElement | null = target;
       while (currentElement && currentElement !== contentRef.current) {
-        if (handleElementClick(currentElement)) {
-          return;
+        const lineAttr = currentElement.getAttribute('data-line');
+        if (lineAttr !== null) {
+          const lineNumber = parseInt(lineAttr, 10);
+          if (!isNaN(lineNumber)) {
+            const lines = markdownContent.split('\n');
+
+            let start = 0;
+            for (let i = 0; i < lineNumber; i++) {
+              start += (lines[i] || '').length + 1;
+            }
+
+            let lastLine = lineNumber;
+            const tagName = currentElement.tagName.toLowerCase();
+            if (['ul', 'ol'].includes(tagName)) {
+              for (let i = lineNumber + 1; i < lines.length; i++) {
+                const trimmed = lines[i].trim();
+                if (!trimmed) break;
+                if (!trimmed.startsWith('- ') && !trimmed.startsWith('* ') && !/^\d+\.\s/.test(trimmed)) break;
+                lastLine = i;
+              }
+            } else if (tagName === 'blockquote') {
+              for (let i = lineNumber + 1; i < lines.length; i++) {
+                if (!lines[i].trimStart().startsWith('>')) break;
+                lastLine = i;
+              }
+            } else if (tagName === 'table') {
+              for (let i = lineNumber + 1; i < lines.length; i++) {
+                if (!lines[i].trimStart().startsWith('|')) break;
+                lastLine = i;
+              }
+            } else if (tagName === 'pre') {
+              for (let i = lineNumber + 1; i < lines.length; i++) {
+                lastLine = i;
+                if (lines[i].trimStart().startsWith('```')) break;
+              }
+            } else {
+              for (let i = lineNumber + 1; i < lines.length; i++) {
+                const trimmed = lines[i].trim();
+                if (!trimmed) break;
+                if (trimmed.startsWith('#') || trimmed.startsWith('- ') || trimmed.startsWith('* ') || 
+                    trimmed.startsWith('>') || trimmed.startsWith('```') || trimmed.startsWith('---') ||
+                    trimmed.startsWith('|') || trimmed.startsWith('![') || /^\d+\.\s/.test(trimmed)) break;
+                lastLine = i;
+              }
+            }
+
+            let end = 0;
+            for (let i = 0; i <= lastLine; i++) {
+              end += (lines[i] || '').length + 1;
+            }
+            end = Math.max(0, end - 1);
+
+            onSelectContent(start, end);
+            return;
+          }
         }
         currentElement = currentElement.parentElement;
       }
@@ -242,9 +407,66 @@ export const Preview = forwardRef<PreviewRef, PreviewProps>(({ html, isDark, the
     };
   }, [onSelectContent, markdownContent]);
 
+  const fontSettingsCss = `
+    #wechat-preview,
+    #wechat-preview *,
+    #wechat-preview p,
+    #wechat-preview h1,
+    #wechat-preview h2,
+    #wechat-preview h3,
+    #wechat-preview h4,
+    #wechat-preview h5,
+    #wechat-preview h6,
+    #wechat-preview li,
+    #wechat-preview blockquote,
+    #wechat-preview blockquote p,
+    #wechat-preview table,
+    #wechat-preview table th,
+    #wechat-preview table td {
+      font-family: ${fontSettings.fontFamily === 'system' ? 'inherit' : fontSettings.fontFamily} !important;
+      line-height: ${fontSettings.lineHeight} !important;
+      letter-spacing: ${fontSettings.letterSpacing}px !important;
+    }
+    
+    #wechat-preview,
+    #wechat-preview p,
+    #wechat-preview li,
+    #wechat-preview blockquote,
+    #wechat-preview blockquote p,
+    #wechat-preview table,
+    #wechat-preview table th,
+    #wechat-preview table td {
+      font-size: ${fontSettings.fontSize}px !important;
+    }
+    
+    #wechat-preview h1 {
+      font-size: ${fontSettings.fontSize * 1.625}px !important;
+    }
+    
+    #wechat-preview h2 {
+      font-size: ${fontSettings.fontSize * 1.375}px !important;
+    }
+    
+    #wechat-preview h3 {
+      font-size: ${fontSettings.fontSize * 1.25}px !important;
+    }
+    
+    #wechat-preview h4 {
+      font-size: ${fontSettings.fontSize * 1.125}px !important;
+    }
+    
+    #wechat-preview h5 {
+      font-size: ${fontSettings.fontSize}px !important;
+    }
+    
+    #wechat-preview h6 {
+      font-size: ${fontSettings.fontSize * 0.875}px !important;
+    }
+  `;
+
   return (
     <div className={clsx(
-      "flex flex-col h-full",
+      "flex flex-col h-full min-h-0",
       isDark ? "bg-[#252525]" : "bg-gray-100"
     )}>
       <div className={clsx(
@@ -303,71 +525,17 @@ export const Preview = forwardRef<PreviewRef, PreviewProps>(({ html, isDark, the
       <div 
         ref={previewScrollRef}
         className="flex-1 overflow-y-auto p-4 md:p-6 lg:p-8"
-        onScroll={scrollSyncEnabled ? onScroll : undefined}
       >
         {themeCss && <style dangerouslySetInnerHTML={{ __html: themeCss }} />}
-        <style dangerouslySetInnerHTML={{ __html: `
-          #wechat-preview,
-          #wechat-preview *,
-          #wechat-preview p,
-          #wechat-preview h1,
-          #wechat-preview h2,
-          #wechat-preview h3,
-          #wechat-preview h4,
-          #wechat-preview h5,
-          #wechat-preview h6,
-          #wechat-preview li,
-          #wechat-preview blockquote,
-          #wechat-preview blockquote p,
-          #wechat-preview table,
-          #wechat-preview table th,
-          #wechat-preview table td {
-            font-family: ${fontSettings.fontFamily === 'system' ? 'inherit' : fontSettings.fontFamily} !important;
-            line-height: ${fontSettings.lineHeight} !important;
-            letter-spacing: ${fontSettings.letterSpacing}px !important;
-          }
-          
-          #wechat-preview,
-          #wechat-preview p,
-          #wechat-preview li,
-          #wechat-preview blockquote,
-          #wechat-preview blockquote p,
-          #wechat-preview table,
-          #wechat-preview table th,
-          #wechat-preview table td {
-            font-size: ${fontSettings.fontSize}px !important;
-          }
-          
-          #wechat-preview h1 {
-            font-size: ${fontSettings.fontSize * 1.625}px !important;
-          }
-          
-          #wechat-preview h2 {
-            font-size: ${fontSettings.fontSize * 1.375}px !important;
-          }
-          
-          #wechat-preview h3 {
-            font-size: ${fontSettings.fontSize * 1.25}px !important;
-          }
-          
-          #wechat-preview h4 {
-            font-size: ${fontSettings.fontSize * 1.125}px !important;
-          }
-          
-          #wechat-preview h5 {
-            font-size: ${fontSettings.fontSize}px !important;
-          }
-          
-          #wechat-preview h6 {
-            font-size: ${fontSettings.fontSize * 0.875}px !important;
-          }
-        `}} />
+        <style dangerouslySetInnerHTML={{ __html: isDark ? DARK_HLJS_CSS : LIGHT_HLJS_CSS }} />
+        <style dangerouslySetInnerHTML={{ __html: fontSettingsCss }} />
+        {isDark && <style dangerouslySetInnerHTML={{ __html: DARK_MODE_CSS }} />}
         <div className={clsx(
           "mx-auto shadow-sm rounded-lg p-6 md:p-8 min-h-full",
           viewMode === 'mobile' ? "max-w-[375px]" :
           viewMode === 'tablet' ? "max-w-[768px]" :
           "max-w-[960px]",
-          isDark ? "bg-[#1f2937] text-gray-200" : "bg-white text-gray-800"
+          isDark ? "bg-[#191919] text-[#a3a3a3]" : "bg-white text-gray-800"
         )}>
           <div 
             ref={contentRef}

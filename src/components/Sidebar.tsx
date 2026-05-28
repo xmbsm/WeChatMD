@@ -139,25 +139,29 @@ export function Sidebar({
 
   if (isCollapsed) {
     return (
-      <div className={clsx(
-        "flex flex-col items-center py-4 border-r transition-all duration-300",
-        isDark ? "bg-[#2d2d2d] border-gray-700" : "bg-white border-gray-200"
-      )} style={{ width: '60px' }}>
+      <div 
+        className="flex flex-col items-center py-4 border-r"
+        style={{ 
+          width: '60px',
+          backgroundColor: isDark ? 'rgb(45 45 45)' : 'white',
+          borderColor: isDark ? '#374151' : '#e5e7eb'
+        }}
+      >
         <button
           onClick={onToggleCollapse}
-          className={clsx(
-            "p-2 rounded-lg mb-4 transition-colors",
-            isDark ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-          )}
+          style={{
+            color: isDark ? '#d1d5db' : '#4b5563',
+          }}
+          className="p-2 rounded-lg mb-4 hover:bg-gray-700 hover:text-white"
         >
           <Menu className="w-5 h-5" />
         </button>
         <button
           onClick={onNewArticle}
-          className={clsx(
-            "p-2 rounded-lg transition-colors",
-            isDark ? "text-gray-300 hover:bg-gray-700 hover:text-white" : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
-          )}
+          style={{
+            color: isDark ? '#d1d5db' : '#4b5563',
+          }}
+          className="p-2 rounded-lg hover:bg-gray-700 hover:text-white"
         >
           <Plus className="w-5 h-5" />
         </button>

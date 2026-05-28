@@ -6,15 +6,13 @@ interface EditorProps {
   onChange: (value: string) => void;
   isDark: boolean;
   editorScrollRef: React.RefObject<HTMLTextAreaElement>;
-  onScroll?: () => void;
-  scrollSyncEnabled?: boolean;
 }
 
 export interface EditorRef {
   setSelection: (start: number, end: number) => void;
 }
 
-export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, isDark, editorScrollRef, onScroll, scrollSyncEnabled = false }, ref) => {
+export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, isDark, editorScrollRef }, ref) => {
   const [showMermaidMenu, setShowMermaidMenu] = useState(false);
   const [showTableMenu, setShowTableMenu] = useState(false);
   const [showIconMenu, setShowIconMenu] = useState(false);
@@ -369,7 +367,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
 
   return (
     <div className={clsx(
-      "flex flex-col h-full",
+      "flex flex-col h-full min-h-0",
       isDark ? "bg-[#1e1e1e]" : "bg-gray-50"
     )}>
       <div className={clsx(
@@ -808,9 +806,8 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
           }, 300);
         }}
         onPaste={handlePaste}
-        onScroll={scrollSyncEnabled ? onScroll : undefined}
         className={clsx(
-          "flex-1 w-full p-4 resize-none outline-none leading-relaxed",
+          "flex-1 w-full p-4 resize-none outline-none leading-relaxed overflow-y-auto",
           isDark 
             ? "bg-[#1e1e1e] text-gray-100 placeholder-gray-600" 
             : "bg-gray-50 text-gray-800 placeholder-gray-400"
@@ -819,7 +816,8 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
           fontFamily: 'var(--font-family, inherit)',
           fontSize: 'var(--font-size, 16px)',
           letterSpacing: 'var(--letter-spacing, 0px)',
-          lineHeight: 'var(--line-height, 1.5)'
+          lineHeight: 'var(--line-height, 1.5)',
+          overflowY: 'auto'
         }}
         placeholder="在这里输入 Markdown 内容..."
         spellCheck={false}

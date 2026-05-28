@@ -13,6 +13,14 @@ export function useTheme() {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   });
 
+  // 应用主题到文档
+  const applyTheme = (newTheme: Theme) => {
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(newTheme);
+    localStorage.setItem('theme', newTheme);
+    setTheme(newTheme);
+  };
+
   // 当主题模式或系统主题变化时更新实际主题
   useEffect(() => {
     const updateTheme = () => {
@@ -22,7 +30,7 @@ export function useTheme() {
       } else {
         newTheme = themeMode as Theme;
       }
-      setTheme(newTheme);
+      applyTheme(newTheme);
     };
 
     updateTheme();
@@ -37,14 +45,11 @@ export function useTheme() {
     };
   }, [themeMode]);
 
-  useEffect(() => {
-    document.documentElement.classList.remove('light', 'dark');
-    document.documentElement.classList.add(theme);
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
   const toggleTheme = () => {
-    setThemeMode(theme === 'light' ? 'dark' : 'light');
+    const newThemeMode = theme === 'light' ? 'dark' : 'light';
+    setThemeMode(newThemeMode);
+    // 直接应用主题，避免闪烁
+    applyTheme(newThemeMode as Theme);
   };
 
   return {

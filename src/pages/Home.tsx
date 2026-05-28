@@ -40,8 +40,9 @@ export default function Home() {
   const previewRef = useRef<PreviewRef>(null);
   const editorScrollRef = useRef<HTMLTextAreaElement>(null);
   const previewScrollRef = useRef<HTMLDivElement>(null);
+  const mobileEditorScrollRef = useRef<HTMLTextAreaElement>(null);
+  const mobilePreviewScrollRef = useRef<HTMLDivElement>(null);
   const scrollSyncLockRef = useRef<'editor' | 'preview' | null>(null);
-  const scrollLockReleaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const showToast = useCallback((message: string) => {
@@ -51,14 +52,16 @@ export default function Home() {
 
   // 处理预览区点击，同步选中编辑器内容
   const handlePreviewClick = useCallback((start: number, end: number) => {
-    console.log('=== handlePreviewClick called ===');
-    console.log('Start:', start, 'End:', end);
-    console.log('editorRef.current:', !!editorRef.current);
-    if (editorRef.current) {
-      console.log('Calling editorRef.current.setSelection');
-      editorRef.current.setSelection(start, end);
-    } else {
-      console.error('editorRef.current is null!');
+    const textarea = editorScrollRef.current;
+    if (textarea) {
+      scrollSyncLockRef.current = 'preview';
+      textarea.focus({ preventScroll: true });
+      textarea.setSelectionRange(start, end);
+      setTimeout(() => {
+        if (scrollSyncLockRef.current === 'preview') {
+          scrollSyncLockRef.current = null;
+        }
+      }, 300);
     }
   }, []);
 
@@ -296,10 +299,84 @@ export default function Home() {
     showToast('主题应用成功！');
   }, [setCurrentTheme, showToast]);
 
-  const handleToggleScrollSync = useCallback(() => {
+  const handleToggleScrollSync = () => {
     setScrollSyncEnabled(!scrollSyncEnabled);
     showToast(scrollSyncEnabled ? '滚动同步已关闭' : '滚动同步已开启');
-  }, [scrollSyncEnabled, showToast]);
+  };
+
+  const scrollLockReleaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const scrollSyncEnabledRef = useRef(scrollSyncEnabled);
+  scrollSyncEnabledRef.current = scrollSyncEnabled;
+
+  useEffect(() => {
+    const editorElement = editorScrollRef.current;
+    const previewElement = previewScrollRef.current;
+
+    if (!editorElement || !previewElement || !scrollSyncEnabled) return;
+
+    const onEditorScroll = () => {
+      if (!scrollSyncEnabledRef.current) return;
+      if (scrollSyncLockRef.current && scrollSyncLockRef.current !== 'editor') return;
+
+      const sourceMaxScroll = editorElement.scrollHeight - editorElement.clientHeight;
+      const targetMaxScroll = previewElement.scrollHeight - previewElement.clientHeight;
+      if (sourceMaxScroll <= 0) {
+        previewElement.scrollTop = 0;
+        return;
+      }
+
+      const scrollRatio = editorElement.scrollTop / sourceMaxScroll;
+      scrollSyncLockRef.current = 'editor';
+      previewElement.scrollTop = scrollRatio * Math.max(targetMaxScroll, 0);
+
+      if (scrollLockReleaseTimeoutRef.current) {
+        clearTimeout(scrollLockReleaseTimeoutRef.current);
+      }
+
+      scrollLockReleaseTimeoutRef.current = setTimeout(() => {
+        if (scrollSyncLockRef.current === 'editor') {
+          scrollSyncLockRef.current = null;
+        }
+        scrollLockReleaseTimeoutRef.current = null;
+      }, 50);
+    };
+
+    const onPreviewScroll = () => {
+      if (!scrollSyncEnabledRef.current) return;
+      if (scrollSyncLockRef.current && scrollSyncLockRef.current !== 'preview') return;
+
+      const sourceMaxScroll = previewElement.scrollHeight - previewElement.clientHeight;
+      const targetMaxScroll = editorElement.scrollHeight - editorElement.clientHeight;
+      if (sourceMaxScroll <= 0) {
+        editorElement.scrollTop = 0;
+        return;
+      }
+
+      const scrollRatio = previewElement.scrollTop / sourceMaxScroll;
+      scrollSyncLockRef.current = 'preview';
+      editorElement.scrollTop = scrollRatio * Math.max(targetMaxScroll, 0);
+
+      if (scrollLockReleaseTimeoutRef.current) {
+        clearTimeout(scrollLockReleaseTimeoutRef.current);
+      }
+
+      scrollLockReleaseTimeoutRef.current = setTimeout(() => {
+        if (scrollSyncLockRef.current === 'preview') {
+          scrollSyncLockRef.current = null;
+        }
+        scrollLockReleaseTimeoutRef.current = null;
+      }, 50);
+    };
+
+    editorElement.addEventListener('scroll', onEditorScroll);
+    previewElement.addEventListener('scroll', onPreviewScroll);
+
+    return () => {
+      editorElement.removeEventListener('scroll', onEditorScroll);
+      previewElement.removeEventListener('scroll', onPreviewScroll);
+    };
+  }, [scrollSyncEnabled]);
+
   useEffect(() => {
     if (!scrollSyncEnabled) {
       scrollSyncLockRef.current = null;
@@ -315,51 +392,6 @@ export default function Home() {
       clearTimeout(scrollLockReleaseTimeoutRef.current);
     }
   }, []);
-
-  const syncScrollPosition = (
-    sourceElement: HTMLElement,
-    targetElement: HTMLElement,
-    sourcePanel: 'editor' | 'preview'
-  ) => {
-    if (!scrollSyncEnabled) return;
-    if (scrollSyncLockRef.current && scrollSyncLockRef.current !== sourcePanel) return;
-
-    const sourceMaxScroll = sourceElement.scrollHeight - sourceElement.clientHeight;
-    const targetMaxScroll = targetElement.scrollHeight - targetElement.clientHeight;
-    if (sourceMaxScroll <= 0) {
-      targetElement.scrollTop = 0;
-      return;
-    }
-
-    const scrollRatio = sourceElement.scrollTop / sourceMaxScroll;
-    scrollSyncLockRef.current = sourcePanel;
-    targetElement.scrollTop = scrollRatio * Math.max(targetMaxScroll, 0);
-
-    if (scrollLockReleaseTimeoutRef.current) {
-      clearTimeout(scrollLockReleaseTimeoutRef.current);
-    }
-
-    scrollLockReleaseTimeoutRef.current = setTimeout(() => {
-      if (scrollSyncLockRef.current === sourcePanel) {
-        scrollSyncLockRef.current = null;
-      }
-      scrollLockReleaseTimeoutRef.current = null;
-    }, 50);
-  };
-
-  const handleEditorScroll = () => {
-    const editorElement = editorScrollRef.current;
-    const previewElement = previewScrollRef.current;
-    if (!editorElement || !previewElement) return;
-    syncScrollPosition(editorElement, previewElement, 'editor');
-  };
-
-  const handlePreviewScroll = () => {
-    const previewElement = previewScrollRef.current;
-    const editorElement = editorScrollRef.current;
-    if (!previewElement || !editorElement) return;
-    syncScrollPosition(previewElement, editorElement, 'preview');
-  };
 
   return (
     <div className={clsx("flex flex-col h-screen w-full overflow-hidden", isDark && "dark")}>
@@ -383,7 +415,12 @@ export default function Home() {
       {/* 主内容区域 */}
       <div className="flex flex-1 overflow-hidden">
         {/* 左侧栏 - 仅在桌面端显示 */}
-        <div className="hidden md:block h-full">
+        <div 
+          className="hidden md:block h-full"
+          style={{ 
+            backgroundColor: isDark ? 'rgb(45 45 45)' : 'white'
+          }}
+        >
           <Sidebar
             articles={articles}
             currentArticleId={currentArticleId}
@@ -453,7 +490,7 @@ export default function Home() {
           
           {/* 桌面端双栏布局 */}
           <div className="hidden md:flex flex-1 overflow-hidden">
-            <div className="w-1/2 h-full border-r" style={{ 
+            <div className="w-1/2 overflow-hidden border-r" style={{ 
               borderColor: isDark ? '#374151' : '#e5e7eb' 
             }}>
               <Editor 
@@ -462,11 +499,9 @@ export default function Home() {
                 onChange={updateContent} 
                 isDark={isDark}
                 editorScrollRef={editorScrollRef}
-                onScroll={handleEditorScroll}
-                scrollSyncEnabled={scrollSyncEnabled}
               />
             </div>
-            <div className="w-1/2 h-full">
+            <div className="w-1/2 overflow-hidden">
               <Preview 
                 ref={previewRef}
                 html={html} 
@@ -474,8 +509,6 @@ export default function Home() {
                 themeCss={getCurrentTheme().css}
                 markdownContent={content}
                 previewScrollRef={previewScrollRef}
-                onScroll={handlePreviewScroll}
-                scrollSyncEnabled={scrollSyncEnabled}
                 onSelectContent={handlePreviewClick}
               />
             </div>
@@ -485,24 +518,20 @@ export default function Home() {
           <div className="md:hidden flex-1 overflow-hidden">
             {activeTab === 'editor' && (
               <Editor 
-                ref={editorRef}
                 content={content} 
                 onChange={updateContent} 
                 isDark={isDark}
-                scrollSyncEnabled={false}
-                editorScrollRef={editorScrollRef}
+                editorScrollRef={mobileEditorScrollRef}
               />
             )}
             {activeTab === 'preview' && (
               <Preview 
-                ref={previewRef}
                 html={html} 
                 isDark={isDark} 
                 themeCss={getCurrentTheme().css}
                 markdownContent={content}
-                scrollSyncEnabled={false}
+                previewScrollRef={mobilePreviewScrollRef}
                 onSelectContent={handlePreviewClick}
-                previewScrollRef={previewScrollRef}
               />
             )}
             {activeTab === 'history' && (

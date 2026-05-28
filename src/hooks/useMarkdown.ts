@@ -1,8 +1,38 @@
 import { useState, useEffect, useCallback } from 'react';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
-import 'highlight.js/styles/github-dark.min.css';
+import 'highlight.js/styles/github.min.css';
 import { Theme, builtInThemes, loadCustomThemes, saveCustomThemes, DEFAULT_PREVIEW_CONTENT } from '../utils/themes';
+
+function renderWithLineNumbers(markdown: string): string {
+  const tokens = marked.lexer(markdown);
+  let result = '';
+  let searchOffset = 0;
+
+  for (const token of tokens) {
+    if (token.type === 'space') continue;
+
+    const offset = markdown.indexOf(token.raw, searchOffset);
+    const line = offset === -1 ? 0 : markdown.substring(0, offset).split('\n').length - 1;
+    if (offset !== -1) {
+      searchOffset = offset + token.raw.length;
+    }
+
+    const rendered = marked.parse(token.raw) as string;
+    const injected = rendered.replace(
+      /<(h[1-6]|p|blockquote|ul|ol|pre|hr|table)\b([^>]*)>/,
+      (match, tag, attrs) => `<${tag}${attrs} data-line="${line}">`
+    );
+
+    if (injected !== rendered) {
+      result += injected;
+    } else {
+      result += `<div data-line="${line}">${rendered}</div>`;
+    }
+  }
+
+  return result;
+}
 
 marked.setOptions({
   breaks: true,
@@ -43,13 +73,8 @@ export function useMarkdown() {
   });
 
   useEffect(() => {
-    const parsedHtml = marked.parse(content) as string;
-    // 检查图片路径
-    if (content.includes('/showcase/')) {
-      console.log('Markdown content includes showcase images');
-      console.log('Parsed HTML:', parsedHtml);
-    }
-    setHtml(parsedHtml);
+    const htmlWithLines = renderWithLineNumbers(content);
+    setHtml(htmlWithLines);
   }, [content]);
 
   useEffect(() => {
