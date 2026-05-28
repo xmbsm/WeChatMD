@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { marked } from 'marked';
 import hljs from 'highlight.js';
 import 'highlight.js/styles/github.min.css';
@@ -43,7 +43,7 @@ marked.use({
   renderer: {
     code({ text, lang }) {
       if (lang === 'mermaid') {
-        return `<div class="mermaid">${text}</div>`;
+        return `<div class="mermaid"><pre style="display:none">${text}</pre></div>`;
       }
       const language = lang && hljs.getLanguage(lang) ? lang : 'plaintext';
       const highlighted = hljs.highlight(text, { language }).value;
@@ -60,22 +60,16 @@ const THEME_KEY = 'wechat-current-theme';
 
 export function useMarkdown() {
   const [content, setContent] = useState<string>(() => {
-    // 清除旧的存储内容，使用新的默认内容
-    localStorage.removeItem(STORAGE_KEY);
-    return DEFAULT_CONTENT;
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved !== null ? saved : DEFAULT_CONTENT;
   });
-  const [html, setHtml] = useState<string>('');
+  const html = useMemo(() => renderWithLineNumbers(content), [content]);
   const [currentThemeId, setCurrentThemeId] = useState<string>(() => {
     return localStorage.getItem(THEME_KEY) || 'default';
   });
   const [customThemes, setCustomThemes] = useState<Theme[]>(() => {
     return loadCustomThemes();
   });
-
-  useEffect(() => {
-    const htmlWithLines = renderWithLineNumbers(content);
-    setHtml(htmlWithLines);
-  }, [content]);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, content);

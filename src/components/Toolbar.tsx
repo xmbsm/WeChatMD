@@ -47,10 +47,10 @@ export function Toolbar({
     )} style={{ width: '100%' }}>
       <div className="flex items-center gap-3">
         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-[#07c160]">
-          <span className="text-white font-bold">W</span>
+          <span className="text-white font-bold">D</span>
         </div>
         <h1 className={clsx(
-          "text-lg font-bold",
+          "text-lg font-bold hidden md:block",
           isDark ? "text-white" : "text-gray-800"
         )}>
           微信 Markdown 编辑器
@@ -249,11 +249,11 @@ export function Toolbar({
       </div>
       
       {/* 移动端工具栏 */}
-      <div className="flex md:hidden items-center gap-2">
+      <div className="flex md:hidden items-center gap-2 overflow-x-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         <button
           onClick={onCopy}
           className={clsx(
-            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+            "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 whitespace-nowrap shrink-0",
             "bg-[#07c160] text-white hover:bg-[#06ad56] active:scale-95"
           )}
           title="一键复制到微信公众号"
@@ -265,7 +265,7 @@ export function Toolbar({
         <button
           onClick={onToggleTheme}
           className={clsx(
-            "p-2 rounded-lg transition-all duration-200",
+            "p-2 rounded-lg transition-all duration-200 shrink-0",
             isDark
               ? "text-gray-300 hover:bg-gray-700 hover:text-white"
               : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"
@@ -278,7 +278,7 @@ export function Toolbar({
         <button
           onClick={toggleMenu}
           className={clsx(
-            "p-2 rounded-lg transition-all duration-200",
+            "p-2 rounded-lg transition-all duration-200 shrink-0",
             isDark
               ? "text-gray-300 hover:bg-gray-700 hover:text-white"
               : "text-gray-600 hover:bg-gray-100 hover:text-gray-800"

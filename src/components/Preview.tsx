@@ -275,60 +275,39 @@ export const Preview = forwardRef<PreviewRef, PreviewProps>(({ html, isDark, the
     mermaid.initialize({
       startOnLoad: false,
       theme: isDark ? 'dark' : 'default',
-      themeVariables: {
-        dark: {
-          primaryColor: '#3b82f6',
-          primaryTextColor: '#ffffff',
-          primaryBorderColor: '#3b82f6',
-          lineColor: '#e5e7eb',
-          secondaryColor: '#374151',
-          tertiaryColor: '#1f2937'
-        },
-        default: {
-          primaryColor: '#3b82f6',
-          primaryTextColor: '#000000',
-          primaryBorderColor: '#3b82f6',
-          lineColor: '#374151',
-          secondaryColor: '#f3f4f6',
-          tertiaryColor: '#ffffff'
+    });
+
+    const renderMermaidDiagrams = async () => {
+      if (!contentRef.current) return;
+      const mermaidNodes = contentRef.current.querySelectorAll('.mermaid');
+      if (mermaidNodes.length === 0) return;
+
+      for (const node of mermaidNodes) {
+        const el = node as HTMLElement;
+        if (el.getAttribute('data-processed')) continue;
+
+        const preEl = el.querySelector('pre');
+        const definition = preEl ? preEl.textContent : el.textContent || '';
+        const id = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
+
+        try {
+          const { svg } = await mermaid.render(id, definition);
+          el.innerHTML = svg;
+          el.setAttribute('data-processed', 'true');
+        } catch (e) {
+          el.innerHTML = `<pre style="color: #c0392b; font-size: 12px; padding: 8px;">图表渲染失败: ${(e as Error).message}</pre>`;
+          el.setAttribute('data-processed', 'true');
         }
       }
-    });
-    
-    const renderMermaid = () => {
-      if (contentRef.current) {
-        try {
-          mermaid.run({
-            nodes: contentRef.current.querySelectorAll('.mermaid')
-          });
-        } catch (e) {}
-      }
     };
-    
-    renderMermaid();
+
+    renderMermaidDiagrams();
 
     if (isDark) {
       applyDarkMode();
     } else {
       resetDarkModeInlineStyles();
     }
-    
-    const observer = new MutationObserver(() => {
-      renderMermaid();
-      if (isDarkRef.current) {
-        applyDarkMode();
-      }
-    });
-    if (contentRef.current) {
-      observer.observe(contentRef.current, {
-        childList: true,
-        subtree: true
-      });
-    }
-    
-    return () => {
-      observer.disconnect();
-    };
   }, [isDark, fontSettings, html, themeCss]);
 
   useEffect(() => {

@@ -1,5 +1,5 @@
 import { clsx } from 'clsx';
-import { useState, useRef, forwardRef, useImperativeHandle, useEffect } from 'react';
+import { useState, useRef, forwardRef, useImperativeHandle, useCallback } from 'react';
 
 interface EditorProps {
   content: string;
@@ -13,16 +13,12 @@ export interface EditorRef {
 }
 
 export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, isDark, editorScrollRef }, ref) => {
-  const [showMermaidMenu, setShowMermaidMenu] = useState(false);
-  const [showTableMenu, setShowTableMenu] = useState(false);
-  const [showIconMenu, setShowIconMenu] = useState(false);
-  const [showListMenu, setShowListMenu] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const [activeMenu, setActiveMenu] = useState<'table' | 'icon' | 'list' | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'editing' | 'saved' | 'idle'>('idle');
+  const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   
   // 插入 Markdown 语法
-  const insertMarkdown = (before: string, after: string = before) => {
+  const insertMarkdown = (before: string, after: string = '') => {
     if (editorScrollRef.current) {
       const start = editorScrollRef.current.selectionStart;
       const end = editorScrollRef.current.selectionEnd;
@@ -105,64 +101,11 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
     }
   };
   
-  // 插入 Mermaid 图表
-  const insertMermaid = (type: string) => {
-    if (editorScrollRef.current) {
-      const start = editorScrollRef.current.selectionStart;
-      const end = editorScrollRef.current.selectionEnd;
-      
-      let mermaidCode = '';
-      switch (type) {
-        case 'flowchart':
-          mermaidCode = `graph TD\n  A[开始] --> B[处理]\n  B --> C[结束]`;
-          break;
-        case 'sequence':
-          mermaidCode = `sequenceDiagram\n  participant A as 客户端\n  participant B as 服务器\n  A->>B: 发送请求\n  B-->>A: 返回响应`;
-          break;
-        case 'gantt':
-          mermaidCode = `gantt\n  title 项目计划\n  section 任务\n  任务1: active, 2024-01-01, 30d\n  任务2: 2024-02-01, 30d`;
-          break;
-        case 'class':
-          mermaidCode = `classDiagram\n  class Person {\n    +string name\n    +int age\n    +void sayHello()\n  }`;
-          break;
-        case 'pie':
-          mermaidCode = `pie\n  title 饼图示例\n  "A": 30\n  "B": 70`;
-          break;
-        case 'state':
-          mermaidCode = `stateDiagram\n  [*] --> 状态1\n  状态1 --> 状态2\n  状态2 --> [*]`;
-          break;
-        case 'er':
-          mermaidCode = `erDiagram\n  CUSTOMER ||--o{ ORDER : places\n  ORDER ||--|{ LINE-ITEM : contains\n  CUSTOMER }|--|{ DELIVERY-ADDRESS : uses`;
-          break;
-        case 'user-journey':
-          mermaidCode = `journey\n  title 用户旅程\n  section 开始\n    A: 开始使用\n  section 过程\n    B: 浏览内容\n    C: 互动\n  section 结束\n    D: 完成`;
-          break;
-        default:
-          mermaidCode = `graph TD\n  A[开始] --> B[处理]\n  B --> C[结束]`;
-      }
-      
-      const newContent = content.substring(0, start) + '```mermaid\n' + mermaidCode + '\n```' + content.substring(end);
-      onChange(newContent);
-      
-      setTimeout(() => {
-        if (editorScrollRef.current) {
-          editorScrollRef.current.focus();
-          const newPosition = start + 11;
-          editorScrollRef.current.setSelectionRange(newPosition, newPosition + mermaidCode.length);
-        }
-      }, 0);
-    }
-  };
-
   useImperativeHandle(ref, () => ({
     setSelection: (start: number, end: number) => {
-      console.log('Editor.setSelection called:', start, end);
-      console.log('editorScrollRef.current:', !!editorScrollRef.current);
       if (editorScrollRef.current) {
-        console.log('Focusing and setting selection');
         editorScrollRef.current.focus();
         editorScrollRef.current.setSelectionRange(start, end);
-        console.log('Selection set successfully');
       }
     }
   }));
@@ -361,9 +304,18 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
     return markdown;
   };
 
-  useEffect(() => {
-    setLastSaved(new Date());
-  }, [content]);
+  const handleChange = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    onChange(e.target.value);
+    setSaveStatus('editing');
+    
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+    
+    saveTimeoutRef.current = setTimeout(() => {
+      setSaveStatus('saved');
+    }, 300);
+  }, [onChange]);
 
   return (
     <div className={clsx(
@@ -435,7 +387,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
         </button>
         <div className="relative mx-1">
           <button 
-            onClick={() => setShowListMenu(!showListMenu)}
+            onClick={() => setActiveMenu(activeMenu === 'list' ? null : 'list')}
             className={clsx(
               "px-2 py-1 rounded",
               isDark 
@@ -448,7 +400,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
           </button>
           <div className={clsx(
             "absolute left-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md z-10",
-            showListMenu ? 'block' : 'hidden',
+            activeMenu === 'list' ? 'block' : 'hidden',
             isDark 
               ? "bg-[#2d2d2d] shadow-gray-700" 
               : "bg-white shadow-gray-200"
@@ -459,7 +411,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
                 <button 
                   onClick={() => {
                     insertMarkdown('- ');
-                    setShowListMenu(false);
+                    setActiveMenu(null);
                   }}
                   className={clsx(
                     "px-2 py-1 text-left rounded",
@@ -473,7 +425,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
                 <button 
                   onClick={() => {
                     insertMarkdown('1. ');
-                    setShowListMenu(false);
+                    setActiveMenu(null);
                   }}
                   className={clsx(
                     "px-2 py-1 text-left rounded",
@@ -550,122 +502,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
         </button>
         <div className="relative mx-1">
           <button 
-            onClick={() => setShowMermaidMenu(!showMermaidMenu)}
-            className={clsx(
-              "px-2 py-1 rounded",
-              isDark 
-                ? "hover:bg-[#374151] text-gray-300" 
-                : "hover:bg-gray-100 text-gray-600"
-            )}
-            title="图表"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-chart-bar" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="16"></line></svg>
-          </button>
-          <div className={clsx(
-            "absolute left-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md z-10",
-            showMermaidMenu ? 'block' : 'hidden',
-            isDark 
-              ? "bg-[#2d2d2d] shadow-gray-700" 
-              : "bg-white shadow-gray-200"
-          )}>
-            <div className="p-2">
-              <div className="font-medium mb-2" style={{ color: isDark ? '#e5e7eb' : '#374151' }}>图表类型</div>
-              <div className="grid grid-cols-2 gap-1">
-                <button 
-                  onClick={() => insertMermaid('flowchart')}
-                  className={clsx(
-                    "px-2 py-1 text-left rounded",
-                    isDark 
-                      ? "hover:bg-[#3c3c3c] text-gray-300" 
-                      : "hover:bg-gray-100 text-gray-600"
-                  )}
-                >
-                  流程图
-                </button>
-                <button 
-                  onClick={() => insertMermaid('sequence')}
-                  className={clsx(
-                    "px-2 py-1 text-left rounded",
-                    isDark 
-                      ? "hover:bg-[#3c3c3c] text-gray-300" 
-                      : "hover:bg-gray-100 text-gray-600"
-                  )}
-                >
-                  时序图
-                </button>
-                <button 
-                  onClick={() => insertMermaid('gantt')}
-                  className={clsx(
-                    "px-2 py-1 text-left rounded",
-                    isDark 
-                      ? "hover:bg-[#3c3c3c] text-gray-300" 
-                      : "hover:bg-gray-100 text-gray-600"
-                  )}
-                >
-                  甘特图
-                </button>
-                <button 
-                  onClick={() => insertMermaid('class')}
-                  className={clsx(
-                    "px-2 py-1 text-left rounded",
-                    isDark 
-                      ? "hover:bg-[#3c3c3c] text-gray-300" 
-                      : "hover:bg-gray-100 text-gray-600"
-                  )}
-                >
-                  类图
-                </button>
-                <button 
-                  onClick={() => insertMermaid('pie')}
-                  className={clsx(
-                    "px-2 py-1 text-left rounded",
-                    isDark 
-                      ? "hover:bg-[#3c3c3c] text-gray-300" 
-                      : "hover:bg-gray-100 text-gray-600"
-                  )}
-                >
-                  饼图
-                </button>
-                <button 
-                  onClick={() => insertMermaid('state')}
-                  className={clsx(
-                    "px-2 py-1 text-left rounded",
-                    isDark 
-                      ? "hover:bg-[#3c3c3c] text-gray-300" 
-                      : "hover:bg-gray-100 text-gray-600"
-                  )}
-                >
-                  状态图
-                </button>
-                <button 
-                  onClick={() => insertMermaid('er')}
-                  className={clsx(
-                    "px-2 py-1 text-left rounded",
-                    isDark 
-                      ? "hover:bg-[#3c3c3c] text-gray-300" 
-                      : "hover:bg-gray-100 text-gray-600"
-                  )}
-                >
-                  ER图
-                </button>
-                <button 
-                  onClick={() => insertMermaid('user-journey')}
-                  className={clsx(
-                    "px-2 py-1 text-left rounded",
-                    isDark 
-                      ? "hover:bg-[#3c3c3c] text-gray-300" 
-                      : "hover:bg-gray-100 text-gray-600"
-                  )}
-                >
-                  用户旅程
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="relative mx-1">
-          <button 
-            onClick={() => setShowTableMenu(!showTableMenu)}
+            onClick={() => setActiveMenu(activeMenu === 'table' ? null : 'table')}
             className={clsx(
               "px-2 py-1 rounded",
               isDark 
@@ -678,7 +515,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
           </button>
           <div className={clsx(
             "absolute left-0 top-full mt-1 w-48 bg-white shadow-lg rounded-md z-10",
-            showTableMenu ? 'block' : 'hidden',
+            activeMenu === 'table' ? 'block' : 'hidden',
             isDark 
               ? "bg-[#2d2d2d] shadow-gray-700" 
               : "bg-white shadow-gray-200"
@@ -736,7 +573,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
         </div>
         <div className="relative mx-1">
           <button 
-            onClick={() => setShowIconMenu(!showIconMenu)}
+            onClick={() => setActiveMenu(activeMenu === 'icon' ? null : 'icon')}
             className={clsx(
               "px-2 py-1 rounded",
               isDark 
@@ -749,7 +586,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
           </button>
           <div className={clsx(
             "absolute left-0 top-full mt-1 w-64 bg-white shadow-lg rounded-md z-10",
-            showIconMenu ? 'block' : 'hidden',
+            activeMenu === 'icon' ? 'block' : 'hidden',
             isDark 
               ? "bg-[#2d2d2d] shadow-gray-700" 
               : "bg-white shadow-gray-200"
@@ -792,19 +629,7 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
       <textarea
         ref={editorScrollRef}
         value={content}
-        onChange={(e) => {
-          setIsEditing(true);
-          onChange(e.target.value);
-          
-          if (saveTimeoutRef.current) {
-            clearTimeout(saveTimeoutRef.current);
-          }
-          
-          saveTimeoutRef.current = setTimeout(() => {
-            setIsEditing(false);
-            setLastSaved(new Date());
-          }, 300);
-        }}
+        onChange={handleChange}
         onPaste={handlePaste}
         className={clsx(
           "flex-1 w-full p-4 resize-none outline-none leading-relaxed overflow-y-auto",
@@ -838,8 +663,8 @@ export const Editor = forwardRef<EditorRef, EditorProps>(({ content, onChange, i
           字数: {content.length}
         </div>
         <div className="flex items-center gap-1">
-          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: isEditing ? '#f59e0b' : (lastSaved ? '#07c160' : '#9ca3af') }}></span>
-          {isEditing ? '编辑中' : (lastSaved ? '已保存' : '未保存')}
+          <span className="w-2 h-2 rounded-full" style={{ backgroundColor: saveStatus === 'editing' ? '#f59e0b' : (saveStatus === 'saved' ? '#07c160' : '#9ca3af') }}></span>
+          {saveStatus === 'editing' ? '编辑中' : (saveStatus === 'saved' ? '已保存' : '未保存')}
         </div>
       </div>
     </div>

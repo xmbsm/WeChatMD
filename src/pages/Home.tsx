@@ -73,7 +73,6 @@ export default function Home() {
   });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
-  // 初始化文章
   useEffect(() => {
     if (articles.length === 0) {
       const newArticle = createArticle();
@@ -81,21 +80,35 @@ export default function Home() {
       setArticles(initialArticles);
       setCurrentArticleId(newArticle.id);
       saveArticles(initialArticles);
+    } else {
+      const currentArticle = articles.find(a => a.id === currentArticleId);
+      if (currentArticle) {
+        updateContent(currentArticle.content);
+        setCurrentTheme(currentArticle.themeId);
+      }
     }
   }, []);
 
-  // 当内容或主题变化时，更新当前文章
+  const isInitialMountRef = useRef(true);
+  const articlesRef = useRef(articles);
+  articlesRef.current = articles;
+
   useEffect(() => {
-    const currentArticle = articles.find(a => a.id === currentArticleId);
+    if (isInitialMountRef.current) {
+      isInitialMountRef.current = false;
+      return;
+    }
+    const currentArticles = articlesRef.current;
+    const currentArticle = currentArticles.find(a => a.id === currentArticleId);
     if (currentArticle && (currentArticle.content !== content || currentArticle.themeId !== currentThemeId)) {
-      const updatedArticles = updateArticle(articles, currentArticleId, {
+      const updatedArticles = updateArticle(currentArticles, currentArticleId, {
         content,
         themeId: currentThemeId
       });
       setArticles(updatedArticles);
       saveArticles(updatedArticles);
     }
-  }, [content, currentThemeId, currentArticleId, articles]);
+  }, [content, currentThemeId, currentArticleId]);
 
   // 文章管理函数
   const handleSelectArticle = useCallback((article: Article) => {
