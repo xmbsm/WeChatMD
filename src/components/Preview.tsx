@@ -1,7 +1,6 @@
 import { clsx } from 'clsx';
 import { useRef, forwardRef, useImperativeHandle, useEffect, useState } from 'react';
 import mermaid from 'mermaid';
-import Darkmode from 'mp-darkmode';
 import { useSettingsStore } from '../store/settingsStore';
 
 interface PreviewProps {
@@ -15,8 +14,6 @@ interface PreviewProps {
 
 export interface PreviewRef {
 }
-
-let darkmodeConfigured = false;
 
 const DARK_MODE_CSS = `
   #wechat-preview {
@@ -186,90 +183,10 @@ const LIGHT_HLJS_CSS = `
 export const Preview = forwardRef<PreviewRef, PreviewProps>(({ html, isDark, themeCss, markdownContent, previewScrollRef, onSelectContent }, ref) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const [viewMode, setViewMode] = useState<'mobile' | 'tablet' | 'desktop'>('desktop');
-  const isDarkRef = useRef(isDark);
-  isDarkRef.current = isDark;
   
   const { fontSettings } = useSettingsStore();
 
   useImperativeHandle(ref, () => ({}));
-
-  const resetDarkModeInlineStyles = () => {
-    if (!contentRef.current) return;
-    const elements = contentRef.current.querySelectorAll('*');
-    elements.forEach(el => {
-      const htmlEl = el as HTMLElement;
-      htmlEl.style.removeProperty('color');
-      htmlEl.style.removeProperty('background-color');
-      htmlEl.style.removeProperty('border-left-color');
-      htmlEl.style.removeProperty('border-right-color');
-      htmlEl.style.removeProperty('border-top-color');
-      htmlEl.style.removeProperty('border-bottom-color');
-      htmlEl.style.removeProperty('text-shadow');
-      htmlEl.style.removeProperty('box-shadow');
-    });
-  };
-
-  const materializeComputedStyles = () => {
-    if (!contentRef.current) return;
-    const elements = contentRef.current.querySelectorAll('*');
-    elements.forEach(el => {
-      const htmlEl = el as HTMLElement;
-      const computed = window.getComputedStyle(htmlEl);
-
-      if (computed.color && computed.color !== 'rgba(0, 0, 0, 0)') {
-        htmlEl.style.color = computed.color;
-      }
-      if (computed.backgroundColor &&
-          computed.backgroundColor !== 'rgba(0, 0, 0, 0)' &&
-          computed.backgroundColor !== 'transparent') {
-        htmlEl.style.backgroundColor = computed.backgroundColor;
-      }
-      const borderColors = [
-        { prop: 'borderLeftColor' as const, value: computed.borderLeftColor },
-        { prop: 'borderRightColor' as const, value: computed.borderRightColor },
-        { prop: 'borderTopColor' as const, value: computed.borderTopColor },
-        { prop: 'borderBottomColor' as const, value: computed.borderBottomColor },
-      ];
-      borderColors.forEach(({ prop, value }) => {
-        if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'rgb(0, 0, 0)') {
-          (htmlEl.style as unknown as Record<string, string>)[prop] = value;
-        }
-      });
-    });
-  };
-
-  const applyDarkMode = () => {
-    if (!contentRef.current || !isDarkRef.current) return;
-
-    resetDarkModeInlineStyles();
-
-    requestAnimationFrame(() => {
-      if (!contentRef.current || !isDarkRef.current) return;
-
-      materializeComputedStyles();
-
-      try {
-        const nodes = contentRef.current.querySelectorAll('*');
-        if (!darkmodeConfigured) {
-          Darkmode.run(nodes, {
-            mode: 'dark',
-            defaultLightTextColor: '#191919',
-            defaultLightBgColor: '#ffffff',
-            defaultDarkTextColor: '#a3a3a3',
-            defaultDarkBgColor: '#191919',
-            error: (err: Error) => {
-              console.error('Darkmode error:', err);
-            }
-          });
-          darkmodeConfigured = true;
-        } else {
-          Darkmode.run(nodes, { mode: 'dark' });
-        }
-      } catch (e) {
-        console.error('Failed to apply mp-darkmode:', e);
-      }
-    });
-  };
 
   useEffect(() => {
     mermaid.initialize({
@@ -302,12 +219,6 @@ export const Preview = forwardRef<PreviewRef, PreviewProps>(({ html, isDark, the
     };
 
     renderMermaidDiagrams();
-
-    if (isDark) {
-      applyDarkMode();
-    } else {
-      resetDarkModeInlineStyles();
-    }
   }, [isDark, fontSettings, html, themeCss]);
 
   useEffect(() => {
